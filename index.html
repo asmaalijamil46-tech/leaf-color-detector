@@ -226,6 +226,8 @@
       for (let i = 0; i < files.length; i++) {
         await processSingleFile(files[i]);
       }
+      // Reset input so selecting the same file again triggers change event
+      event.target.value = "";
     }
 
     function processSingleFile(file) {
@@ -285,8 +287,7 @@
       if (isWebcamActive) {
         webcam.update();
         const preds = await model.predict(webcam.canvas);
-        const res = parsePredictions(preds);
-        updateUI(res.topClass, res.probabilities);
+        parsePredictions(preds);
         window.requestAnimationFrame(webcamLoop);
       }
     }
