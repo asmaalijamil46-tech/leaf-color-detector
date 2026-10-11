@@ -11,14 +11,20 @@
     body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
     .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 580px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); transition: max-width 0.4s ease; }
     
-    /* Dynamic Side-by-Side Class toggled via History Click */
-    .container.split-layout { max-width: 760px; }
-    .container.split-layout .workspace { display: flex; gap: 20px; align-items: stretch; }
-    .container.split-layout .workspace-left { flex: 1; display: flex; flex-direction: column; }
-    .container.split-layout .workspace-right { flex: 1.2; display: flex; flex-direction: column; justify-content: center; }
-    @media (max-width: 650px) {
-      .container.split-layout .workspace { flex-direction: column; }
-    }
+    /* Inspection Mode Layout (Activated on History Click) */
+    .container.inspect-mode { max-width: 760px; }
+    .container.inspect-mode .tabs,
+    .container.inspect-mode #upload-mode,
+    .container.inspect-mode #webcam-mode { display: none !important; }
+    
+    .container.inspect-mode .workspace { display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; }
+    .container.inspect-mode .inspect-left { flex: 1; display: flex; flex-direction: column; }
+    .container.inspect-mode .inspect-right { flex: 1.2; display: flex; flex-direction: column; justify-content: center; }
+    .container.inspect-mode #inspect-preview-container { display: flex !important; width: 100%; height: 260px; background-color: #121212; border: 2px solid #333; border-radius: 12px; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+    .container.inspect-mode #inspect-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+    .container.inspect-mode #back-btn-container { display: block !important; margin-bottom: 16px; }
+
+    #inspect-preview-container, #back-btn-container { display: none; }
 
     h1 { font-size: 1.5rem; text-align: center; margin-bottom: 6px; color: #ffffff; }
     p.subtitle { text-align: center; font-size: 0.85rem; color: #a0a0a0; margin-bottom: 20px; }
@@ -32,15 +38,11 @@
     input[type="file"] { display: none; }
     
     #preview-container { width: 100%; height: 260px; background-color: #121212; border: 2px dashed #333; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
-    #preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; transition: transform 0.4s ease, opacity 0.3s ease; }
+    #preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
     #webcam-container { display: none; width: 100%; height: 260px; background-color: #121212; border-radius: 12px; overflow: hidden; justify-content: center; align-items: center; }
 
-    /* Slide Animations */
-    .slide-left { animation: pulseSlide 0.4s ease; }
-    @keyframes pulseSlide {
-      0% { transform: scale(0.92); opacity: 0.6; }
-      100% { transform: scale(1); opacity: 1; }
-    }
+    .back-btn { background: #2c2c2c; border: 1px solid #444; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+    .back-btn:hover { background-color: #383838; }
 
     .status-banner { padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-weight: 700; text-align: center; font-size: 0.95rem; background-color: rgba(255,255,255,0.05); color: #aaa; border: 1px solid #333; transition: all 0.3s ease; }
     .status-green { background-color: rgba(46, 125, 50, 0.25); color: #81c784; border: 1px solid #2e7d32; }
@@ -48,19 +50,13 @@
     .status-brown { background-color: rgba(211, 47, 47, 0.25); color: #e57373; border: 1px solid #d32f2f; }
     .status-error { background-color: rgba(211, 47, 47, 0.3); color: #ff8a80; border: 1px solid #d32f2f; font-size: 0.85rem; }
 
-    .label-container { margin-bottom: 20px; transition: transform 0.4s ease, opacity 0.3s ease; }
-    .slide-right { animation: fadeInRight 0.4s ease; }
-    @keyframes fadeInRight {
-      0% { transform: translateX(20px); opacity: 0; }
-      100% { transform: translateX(0); opacity: 1; }
-    }
-
+    .label-container { margin-bottom: 20px; }
     .bar-wrapper { margin-bottom: 12px; }
     .bar-info { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; }
     .progress-bg { background-color: #2c2c2c; border-radius: 6px; height: 10px; overflow: hidden; }
     .progress-fill { height: 100%; width: 0%; background-color: #4caf50; border-radius: 6px; transition: width 0.4s ease; }
 
-    .recommendation-box { background-color: #282828; border-left: 4px solid #2196f3; border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.45; margin-bottom: 20px; transition: all 0.4s ease; }
+    .recommendation-box { background-color: #282828; border-left: 4px solid #2196f3; border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.45; margin-bottom: 20px; }
     .recommendation-box h3 { font-size: 0.95rem; color: #ffffff; margin-bottom: 6px; }
 
     /* Scouting History Styling */
@@ -91,14 +87,19 @@
     <h1>🌿 Leaf Color & Health Detector</h1>
     <p class="subtitle">AI-Powered Precision Crop Scouting System</p>
 
+    <!-- Back Button for Inspection Mode -->
+    <div id="back-btn-container">
+      <button class="back-btn" onclick="exitInspectMode()">← Back to Main</button>
+    </div>
+
     <div class="tabs">
       <button class="tab-btn active" id="btn-upload" onclick="switchTab('upload')">📁 Upload Photos</button>
       <button class="tab-btn" id="btn-webcam" onclick="switchTab('webcam')">📷 Live Camera</button>
     </div>
 
-    <!-- Workspace container that switches to side-by-side on history click -->
+    <!-- Workspace Layout -->
     <div class="workspace" id="workspace-layout">
-      <div class="workspace-left">
+      <div class="inspect-left">
         <!-- Upload Mode UI -->
         <div id="upload-mode" class="input-section">
           <label for="image-input" class="custom-file-upload">Choose Photos (Multiple Allowed)</label>
@@ -113,9 +114,14 @@
         <div id="webcam-mode" class="input-section" style="display: none;">
           <div id="webcam-container"></div>
         </div>
+
+        <!-- Dedicated Inspect Mode Image Box -->
+        <div id="inspect-preview-container">
+          <img id="inspect-preview-img" alt="Inspected leaf">
+        </div>
       </div>
 
-      <div class="workspace-right">
+      <div class="inspect-right">
         <!-- Diagnosis Status Banner -->
         <div id="status-banner" class="status-banner">
           Status: Ready for Inspection
@@ -152,7 +158,7 @@
         <button class="clear-btn" onclick="clearHistory()">Clear Log</button>
       </div>
       <div class="history-list" id="history-list">
-        <div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to review its results!</div>
+        <div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>
       </div>
     </div>
 
@@ -222,25 +228,29 @@
       if (!model) return;
 
       for (let i = 0; i < files.length; i++) {
-        await processSingleFile(files[i]);
+        await processAndLogFile(files[i]);
       }
       event.target.value = ""; // Reset input
     }
 
-    function processSingleFile(file) {
+    function processAndLogFile(file) {
       return new Promise((resolve) => {
-        const imgElement = document.getElementById("preview-img");
-        const placeholder = document.getElementById("placeholder-text");
-
         const reader = new FileReader();
         reader.onload = function(e) {
           const imgSrc = e.target.result;
-          imgElement.src = imgSrc;
-          imgElement.style.display = "block";
-          placeholder.style.display = "none";
+          const tempImg = new Image();
+          tempImg.src = imgSrc;
 
-          imgElement.onload = async function() {
-            const preds = await model.predict(imgElement);
+          tempImg.onload = async function() {
+            // Display live in main preview
+            const imgElement = document.getElementById("preview-img");
+            const placeholder = document.getElementById("placeholder-text");
+            imgElement.src = imgSrc;
+            imgElement.style.display = "block";
+            placeholder.style.display = "none";
+
+            // Run prediction once
+            const preds = await model.predict(tempImg);
             const res = parsePredictions(preds);
             updateTimestamp();
             addToHistory(imgSrc, res.topClass, res.probabilities);
@@ -380,33 +390,18 @@
         <div class="history-details">
           <span class="history-title">${topClass} (${percent}%)</span>
           <span class="history-time">${timeString} • Sector A-1</span>
-          <span class="history-hint">🔍 Click to inspect side-by-side</span>
+          <span class="history-hint">🔍 Click to inspect record</span>
         </div>
       `;
 
-      // Interactive Click Animation: Transforms to Split View & Recalls Record
+      // Click to enter dedicated Inspection Mode
       item.addEventListener("click", () => {
-        switchTab('upload');
-
+        stopWebcam();
         const container = document.getElementById("main-container");
-        const imgElement = document.getElementById("preview-img");
-        const placeholder = document.getElementById("placeholder-text");
-        const rightBox = document.querySelector(".workspace-right");
+        const inspectImg = document.getElementById("inspect-preview-img");
 
-        // Enable side-by-side layout class
-        container.classList.add("split-layout");
-
-        // Trigger slide animations
-        imgElement.classList.remove("slide-left");
-        rightBox.classList.remove("slide-right");
-        void imgElement.offsetWidth; // trigger reflow
-
-        imgElement.src = imageSrc;
-        imgElement.style.display = "block";
-        placeholder.style.display = "none";
-
-        imgElement.classList.add("slide-left");
-        rightBox.classList.add("slide-right");
+        container.classList.add("inspect-mode");
+        inspectImg.src = imageSrc;
 
         updateUI(topClass, probabilities);
       });
@@ -414,9 +409,14 @@
       historyList.prepend(item);
     }
 
+    function exitInspectMode() {
+      const container = document.getElementById("main-container");
+      container.classList.remove("inspect-mode");
+    }
+
     function clearHistory() {
       const historyList = document.getElementById("history-list");
-      historyList.innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to review its results!</div>`;
+      historyList.innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>`;
     }
   </script>
 </body>
