@@ -1,36 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Leaf Color Detector - AI Scouting</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaf Color & Health Detector - AgTech AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #121212;
-      color: #ffffff;
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-    }
-    h1 {
-      color: #4CAF50;
-      margin-bottom: 5px;
-    }
-    p.subtitle {
-      color: #aaa;
-      margin-top: 0;
-      margin-bottom: 25px;
+      min-height: 100vh;
+      padding: 20px;
     }
     .container {
       background-color: #1e1e1e;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 500px;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 520px;
       width: 100%;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+    p.subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #a0a0a0;
+      margin-bottom: 20px;
     }
     .tabs {
       display: flex;
@@ -41,250 +51,352 @@
       flex: 1;
       padding: 10px;
       border: none;
-      background-color: #333;
-      color: #fff;
-      font-weight: bold;
-      border-radius: 6px;
+      background-color: #2c2c2c;
+      color: #a0a0a0;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s;
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
     .tab-btn.active {
-      background-color: #4CAF50;
+      background-color: #2e7d32;
+      color: #ffffff;
     }
-    .section {
-      display: none;
+    .input-section {
+      display: flex;
       flex-direction: column;
       align-items: center;
+      margin-bottom: 20px;
     }
-    .section.active {
-      display: flex;
-    }
-    #webcam-container, #image-preview-container {
-      width: 300px;
-      height: 300px;
-      border: 2px dashed #444;
+    .custom-file-upload {
+      display: inline-block;
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #2196f3;
+      color: white;
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      margin-bottom: 15px;
-      background-color: #000;
+      font-weight: 600;
+      margin-bottom: 16px;
+      transition: background 0.2s;
     }
-    #image-preview {
-      max-width: 100%;
-      max-height: 100%;
-      display: none;
+    .custom-file-upload:hover {
+      background-color: #1976d2;
     }
     input[type="file"] {
       display: none;
     }
-    .custom-file-upload {
-      background-color: #2196F3;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-    .action-btn {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 15px;
-    }
-    #label-container {
+    #preview-container {
       width: 100%;
-      margin-top: 15px;
+      height: 260px;
+      background-color: #121212;
+      border: 2px dashed #333;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
     }
-    .bar-container {
-      margin-bottom: 10px;
+    #preview-img, #webcam-container canvas {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
     }
-    .bar-label {
+    #webcam-container {
+      display: none;
+      width: 100%;
+      height: 260px;
+      background-color: #121212;
+      border-radius: 12px;
+      overflow: hidden;
+      justify-content: center;
+      align-items: center;
+    }
+    /* Diagnosis Status Banner */
+    .status-banner {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-weight: 700;
+      text-align: center;
+      font-size: 1.05rem;
+    }
+    .status-green { background-color: rgba(46, 125, 50, 0.25); color: #81c784; border: 1px solid #2e7d32; }
+    .status-yellow { background-color: rgba(251, 192, 45, 0.25); color: #fff176; border: 1px solid #fbc02d; }
+    .status-brown { background-color: rgba(211, 47, 47, 0.25); color: #e57373; border: 1px solid #d32f2f; }
+
+    /* Prediction Bars */
+    .label-container {
+      margin-bottom: 20px;
+    }
+    .bar-wrapper {
+      margin-bottom: 12px;
+    }
+    .bar-info {
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
+      font-size: 0.9rem;
       margin-bottom: 4px;
     }
-    .progress-bar-bg {
-      background-color: #333;
-      border-radius: 4px;
-      height: 12px;
+    .progress-bg {
+      background-color: #2c2c2c;
+      border-radius: 6px;
+      height: 10px;
       overflow: hidden;
     }
-    .progress-bar-fill {
+    .progress-fill {
       height: 100%;
       width: 0%;
-      background-color: #4CAF50;
+      background-color: #4caf50;
+      border-radius: 6px;
       transition: width 0.3s ease;
     }
-  </style>
 
-  <!-- TensorFlow.js Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    /* Actionable Recommendations Box */
+    .recommendation-box {
+      background-color: #282828;
+      border-left: 4px solid #2196f3;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .recommendation-box h3 {
+      font-size: 0.95rem;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    /* Scouting Metadata */
+    .meta-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px solid #2c2c2c;
+    }
+  </style>
 </head>
 <body>
 
-  <h1>🍃 Leaf Color Detector</h1>
-  <p class="subtitle">Precision Agricultural Scouting System</p>
-
   <div class="container">
+    <h1>🌿 Leaf Color & Health Detector</h1>
+    <p class="subtitle">AI-Powered Precision Crop Scouting System</p>
+
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchMode('file')">📁 Upload Image</button>
-      <button class="tab-btn" onclick="switchMode('webcam')">📷 Live Webcam</button>
+      <button class="tab-btn active" id="btn-upload" onclick="switchMode('upload')">📁 Upload Photo</button>
+      <button class="tab-btn" id="btn-webcam" onclick="switchMode('webcam')">📷 Live Camera</button>
     </div>
 
-    <!-- FILE UPLOAD SECTION -->
-    <div id="file-section" class="section active">
-      <label for="image-upload" class="custom-file-upload">
-        Choose Leaf Photo
-      </label>
-      <input type="file" id="image-upload" accept="image/*" onchange="handleImageUpload(event)">
-      
-      <div id="image-preview-container">
-        <span id="upload-placeholder" style="color: #666;">No image selected</span>
-        <img id="image-preview" alt="Uploaded Leaf Preview" />
+    <!-- Upload Mode UI -->
+    <div id="upload-mode" class="input-section">
+      <label for="image-input" class="custom-file-upload">Choose Leaf Photo</label>
+      <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload(event)">
+      <div id="preview-container">
+        <span id="placeholder-text" style="color: #666; font-size: 0.9rem;">No image selected</span>
+        <img id="preview-img" style="display: none;" alt="Leaf preview">
       </div>
     </div>
 
-    <!-- WEBCAM SECTION -->
-    <div id="webcam-section" class="section">
-      <button class="action-btn" onclick="startWebcam()">Start Camera</button>
+    <!-- Webcam Mode UI -->
+    <div id="webcam-mode" class="input-section" style="display: none;">
       <div id="webcam-container"></div>
     </div>
 
-    <!-- PREDICTION RESULTS -->
-    <div id="label-container"></div>
+    <!-- Status Banner -->
+    <div id="status-banner" class="status-banner">
+      Status: Awaiting Inspection
+    </div>
+
+    <!-- Prediction Bars -->
+    <div class="label-container" id="label-container">
+      <div class="bar-wrapper">
+        <div class="bar-info"><span class="class-name">Green</span><span class="class-percentage">0%</span></div>
+        <div class="progress-bg"><div class="progress-fill" style="width: 0%; background-color: #4caf50;"></div></div>
+      </div>
+      <div class="bar-wrapper">
+        <div class="bar-info"><span class="class-name">Yellowing</span><span class="class-percentage">0%</span></div>
+        <div class="progress-bg"><div class="progress-fill" style="width: 0%; background-color: #fbc02d;"></div></div>
+      </div>
+      <div class="bar-wrapper">
+        <div class="bar-info"><span class="class-name">Brown / Discolored</span><span class="class-percentage">0%</span></div>
+        <div class="progress-bg"><div class="progress-fill" style="width: 0%; background-color: #ef5350;"></div></div>
+      </div>
+    </div>
+
+    <!-- Actionable Recommendation Box -->
+    <div class="recommendation-box" id="recommendation-box">
+      <h3>📋 Field Action Plan</h3>
+      <p id="recommendation-text">Upload or scan a leaf image to generate localized crop diagnostic recommendations.</p>
+    </div>
+
+    <!-- Metadata Stamp -->
+    <div class="meta-info">
+      <span>Field Sector: A-1</span>
+      <span id="timestamp-stamp">Timestamp: --</span>
+    </div>
   </div>
 
   <script>
-    
-    const URL = "https://teachablemachine.withgoogle.com/models/Cmr5PfMeI/";
+    // YOUR TEACHABLE MACHINE MODEL LINK
+    const URL = "https://teachablemachine.withgoogle.com/models/r-r5PfMeI/";
 
     let model, webcam, labelContainer, maxPredictions;
-    let isWebcamRunning = false;
+    let isWebcamActive = false;
 
-    // Load model on page startup
-    async function loadModel() {
-      const modelURL = URL + "model.json";
-      const metadataURL = URL + "metadata.json";
-      model = await tmImage.load(modelURL, metadataURL);
-      maxPredictions = model.getTotalClasses();
-      setupLabelContainer();
-    }
-    loadModel();
+    // Recommendations Map
+    const recommendations = {
+      "Green": "🟢 <strong>Optimal Health:</strong> Crop exhibits healthy chlorophyll levels. Maintain standard irrigation and fertilization schedules.",
+      "Yellowing": "🟡 <strong>Nutrient Stress Warning:</strong> Potential Nitrogen deficiency or over-watering detected. Inspect root moisture levels and consider balanced N-P-K soil treatment.",
+      "Brown_Discolored": "🔴 <strong>Fungal / Necrotic Risk:</strong> Severe tissue stress or infection detected. Inspect for blight or drought stress, isolate affected leaves, or consult crop protection spray guidelines.",
+      "Yellow": "🟡 <strong>Nutrient Stress Warning:</strong> Potential Nitrogen deficiency or over-watering detected. Inspect root moisture levels and consider balanced N-P-K soil treatment.",
+      "Brown": "🔴 <strong>Fungal / Necrotic Risk:</strong> Severe tissue stress or infection detected. Inspect for blight or drought stress, isolate affected leaves, or consult crop protection spray guidelines."
+    };
 
-    function setupLabelContainer() {
-      labelContainer = document.getElementById("label-container");
-      labelContainer.innerHTML = "";
-      for (let i = 0; i < maxPredictions; i++) {
-        const div = document.createElement("div");
-        div.className = "bar-container";
-        div.innerHTML = `
-          <div class="bar-label">
-            <span id="class-name-${i}">Class</span>
-            <span id="class-val-${i}">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div id="bar-fill-${i}" class="progress-bar-fill"></div>
-          </div>
-        `;
-        labelContainer.appendChild(div);
+    async function initModel() {
+      if (!model) {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
       }
     }
 
-    // Mode Switching
-    function switchMode(mode) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    async function handleImageUpload(event) {
+      await initModel();
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imgElement = document.getElementById("preview-img");
+          imgElement.src = e.target.result;
+          imgElement.style.display = "block";
+          document.getElementById("placeholder-text").style.display = "none";
+          imgElement.onload = async function() {
+            await predict(imgElement);
+            updateTimestamp();
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    }
 
-      if (mode === 'file') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('file-section').classList.add('active');
+    async function switchMode(mode) {
+      await initModel();
+      if (mode === 'upload') {
+        document.getElementById('upload-mode').style.display = 'flex';
+        document.getElementById('webcam-mode').style.display = 'none';
+        document.getElementById('btn-upload').classList.add('active');
+        document.getElementById('btn-webcam').classList.remove('active');
         stopWebcam();
       } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('webcam-section').classList.add('active');
+        document.getElementById('upload-mode').style.display = 'none';
+        document.getElementById('webcam-mode').style.display = 'flex';
+        document.getElementById('btn-webcam').classList.add('active');
+        document.getElementById('btn-upload').classList.remove('active');
+        startWebcam();
       }
     }
 
-    // Handle File Upload
-    async function handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const imgElement = document.getElementById("image-preview");
-      const placeholder = document.getElementById("upload-placeholder");
-      
-      imgElement.src = window.URL.createObjectURL(file);
-      imgElement.style.display = "block";
-      placeholder.style.display = "none";
-
-      imgElement.onload = async function() {
-        if (!model) await loadModel();
-        const prediction = await model.predict(imgElement);
-        displayPredictions(prediction);
-      };
-    }
-
-    // Handle Live Webcam
     async function startWebcam() {
-      if (isWebcamRunning) return;
-      if (!model) await loadModel();
+      if (!isWebcamActive) {
+        const flip = true;
+        webcam = new tmImage.Webcam(260, 260, flip);
+        await webcam.setup();
+        await webcam.play();
+        isWebcamActive = true;
+        
+        const container = document.getElementById("webcam-container");
+        container.innerHTML = "";
+        container.appendChild(webcam.canvas);
+        container.style.display = "flex";
 
-      const flip = true;
-      webcam = new tmImage.Webcam(300, 300, flip);
-      await webcam.setup();
-      await webcam.play();
-      isWebcamRunning = true;
-
-      document.getElementById("webcam-container").appendChild(webcam.canvas);
-      window.requestAnimationFrame(webcamLoop);
-    }
-
-    async function webcamLoop() {
-      if (!isWebcamRunning) return;
-      webcam.update();
-      const prediction = await model.predict(webcam.canvas);
-      displayPredictions(prediction);
-      window.requestAnimationFrame(webcamLoop);
+        window.requestAnimationFrame(webcamLoop);
+      }
     }
 
     function stopWebcam() {
-      if (webcam && isWebcamRunning) {
+      if (webcam && isWebcamActive) {
         webcam.stop();
-        isWebcamRunning = false;
-        document.getElementById("webcam-container").innerHTML = "";
+        isWebcamActive = false;
+        document.getElementById("webcam-container").style.display = "none";
       }
     }
 
-    // Render Progress Bars
-    function displayPredictions(predictions) {
-      for (let i = 0; i < maxPredictions; i++) {
-        const className = predictions[i].className;
-        const probability = (predictions[i].probability * 100).toFixed(0);
-
-        document.getElementById(`class-name-${i}`).innerText = className;
-        document.getElementById(`class-val-${i}`).innerText = probability + "%";
-        
-        const fill = document.getElementById(`bar-fill-${i}`);
-        fill.style.width = probability + "%";
-
-        // Color coding based on class
-        if (className.toLowerCase().includes("green")) {
-          fill.style.backgroundColor = "#4CAF50";
-        } else if (className.toLowerCase().includes("yellow")) {
-          fill.style.backgroundColor = "#FFEB3B";
-        } else {
-          fill.style.backgroundColor = "#FF5722";
-        }
+    async function webcamLoop() {
+      if (isWebcamActive) {
+        webcam.update();
+        await predict(webcam.canvas);
+        window.requestAnimationFrame(webcamLoop);
       }
+    }
+
+    async function predict(imageElement) {
+      const predictions = await model.predict(imageElement);
+      let highestProb = 0;
+      let topClass = "";
+
+      const colorMap = {
+        "Green": "#4caf50",
+        "Yellowing": "#fbc02d",
+        "Yellow": "#fbc02d",
+        "Brown_Discolored": "#ef5350",
+        "Brown": "#ef5350"
+      };
+
+      predictions.forEach((p, index) => {
+        const percentage = (p.probability * 100).toFixed(0);
+        if (p.probability > highestProb) {
+          highestProb = p.probability;
+          topClass = p.className;
+        }
+
+        const barWrappers = document.querySelectorAll('.bar-wrapper');
+        if (barWrappers[index]) {
+          barWrappers[index].querySelector('.class-name').textContent = p.className;
+          barWrappers[index].querySelector('.class-percentage').textContent = percentage + "%";
+          const fill = barWrappers[index].querySelector('.progress-fill');
+          fill.style.width = percentage + "%";
+          if (colorMap[p.className]) {
+            fill.style.backgroundColor = colorMap[p.className];
+          }
+        }
+      });
+
+      // Update Diagnosis Banner & Recommendation Box
+      updateDiagnosis(topClass);
+    }
+
+    function updateDiagnosis(className) {
+      const banner = document.getElementById('status-banner');
+      const recText = document.getElementById('recommendation-text');
+      banner.style.display = 'block';
+
+      if (className === 'Green') {
+        banner.className = 'status-banner status-green';
+        banner.textContent = '🟢 STATUS: HEALTHY CROP';
+      } else if (className.includes('Yellow')) {
+        banner.className = 'status-banner status-yellow';
+        banner.textContent = '🟡 STATUS: ATTENTION REQUIRED';
+      } else if (className.includes('Brown') || className.includes('Discolored')) {
+        banner.className = 'status-banner status-brown';
+        banner.textContent = '🔴 STATUS: HIGH RISK / STRESSED';
+      }
+
+      if (recommendations[className]) {
+        recText.innerHTML = recommendations[className];
+      } else {
+        recText.innerHTML = "<strong>Inspection Complete:</strong> Model confidence recorded.";
+      }
+    }
+
+    function updateTimestamp() {
+      const now = new Date();
+      document.getElementById('timestamp-stamp').textContent = 'Timestamp: ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
   </script>
 </body>
