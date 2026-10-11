@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leaf Color Detector - AI Scouting</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #4CAF50;
+      margin-bottom: 5px;
+    }
+    p.subtitle {
+      color: #aaa;
+      margin-top: 0;
+      margin-bottom: 25px;
+    }
+    .container {
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background-color: #333;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .tab-btn.active {
+      background-color: #4CAF50;
+    }
+    .section {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+    .section.active {
+      display: flex;
+    }
+    #webcam-container, #image-preview-container {
+      width: 300px;
+      height: 300px;
+      border: 2px dashed #444;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 15px;
+      background-color: #000;
+    }
+    #image-preview {
+      max-width: 100%;
+      max-height: 100%;
+      display: none;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .custom-file-upload {
+      background-color: #2196F3;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .action-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    #label-container {
+      width: 100%;
+      margin-top: 15px;
+    }
+    .bar-container {
+      margin-bottom: 10px;
+    }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .progress-bar-bg {
+      background-color: #333;
+      border-radius: 4px;
+      height: 12px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #4CAF50;
+      transition: width 0.3s ease;
+    }
+  </style>
+
+  <!-- TensorFlow.js Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+
+  <h1>🍃 Leaf Color Detector</h1>
+  <p class="subtitle">Precision Agricultural Scouting System</p>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchMode('file')">📁 Upload Image</button>
+      <button class="tab-btn" onclick="switchMode('webcam')">📷 Live Webcam</button>
+    </div>
+
+    <!-- FILE UPLOAD SECTION -->
+    <div id="file-section" class="section active">
+      <label for="image-upload" class="custom-file-upload">
+        Choose Leaf Photo
+      </label>
+      <input type="file" id="image-upload" accept="image/*" onchange="handleImageUpload(event)">
+      
+      <div id="image-preview-container">
+        <span id="upload-placeholder" style="color: #666;">No image selected</span>
+        <img id="image-preview" alt="Uploaded Leaf Preview" />
+      </div>
+    </div>
+
+    <!-- WEBCAM SECTION -->
+    <div id="webcam-section" class="section">
+      <button class="action-btn" onclick="startWebcam()">Start Camera</button>
+      <div id="webcam-container"></div>
+    </div>
+
+    <!-- PREDICTION RESULTS -->
+    <div id="label-container"></div>
+  </div>
+
+  <script>
+    
+    const URL = "https://teachablemachine.withgoogle.com/models/Cmr5PfMeI/";
+
+    let model, webcam, labelContainer, maxPredictions;
+    let isWebcamRunning = false;
+
+    // Load model on page startup
+    async function loadModel() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+      setupLabelContainer();
+    }
+    loadModel();
+
+    function setupLabelContainer() {
+      labelContainer = document.getElementById("label-container");
+      labelContainer.innerHTML = "";
+      for (let i = 0; i < maxPredictions; i++) {
+        const div = document.createElement("div");
+        div.className = "bar-container";
+        div.innerHTML = `
+          <div class="bar-label">
+            <span id="class-name-${i}">Class</span>
+            <span id="class-val-${i}">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="bar-fill-${i}" class="progress-bar-fill"></div>
+          </div>
+        `;
+        labelContainer.appendChild(div);
+      }
+    }
+
+    // Mode Switching
+    function switchMode(mode) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+
+      if (mode === 'file') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('file-section').classList.add('active');
+        stopWebcam();
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('webcam-section').classList.add('active');
+      }
+    }
+
+    // Handle File Upload
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const imgElement = document.getElementById("image-preview");
+      const placeholder = document.getElementById("upload-placeholder");
+      
+      imgElement.src = window.URL.createObjectURL(file);
+      imgElement.style.display = "block";
+      placeholder.style.display = "none";
+
+      imgElement.onload = async function() {
+        if (!model) await loadModel();
+        const prediction = await model.predict(imgElement);
+        displayPredictions(prediction);
+      };
+    }
+
+    // Handle Live Webcam
+    async function startWebcam() {
+      if (isWebcamRunning) return;
+      if (!model) await loadModel();
+
+      const flip = true;
+      webcam = new tmImage.Webcam(300, 300, flip);
+      await webcam.setup();
+      await webcam.play();
+      isWebcamRunning = true;
+
+      document.getElementById("webcam-container").appendChild(webcam.canvas);
+      window.requestAnimationFrame(webcamLoop);
+    }
+
+    async function webcamLoop() {
+      if (!isWebcamRunning) return;
+      webcam.update();
+      const prediction = await model.predict(webcam.canvas);
+      displayPredictions(prediction);
+      window.requestAnimationFrame(webcamLoop);
+    }
+
+    function stopWebcam() {
+      if (webcam && isWebcamRunning) {
+        webcam.stop();
+        isWebcamRunning = false;
+        document.getElementById("webcam-container").innerHTML = "";
+      }
+    }
+
+    // Render Progress Bars
+    function displayPredictions(predictions) {
+      for (let i = 0; i < maxPredictions; i++) {
+        const className = predictions[i].className;
+        const probability = (predictions[i].probability * 100).toFixed(0);
+
+        document.getElementById(`class-name-${i}`).innerText = className;
+        document.getElementById(`class-val-${i}`).innerText = probability + "%";
+        
+        const fill = document.getElementById(`bar-fill-${i}`);
+        fill.style.width = probability + "%";
+
+        // Color coding based on class
+        if (className.toLowerCase().includes("green")) {
+          fill.style.backgroundColor = "#4CAF50";
+        } else if (className.toLowerCase().includes("yellow")) {
+          fill.style.backgroundColor = "#FFEB3B";
+        } else {
+          fill.style.backgroundColor = "#FF5722";
+        }
+      }
+    }
+  </script>
+</body>
+</html>
