@@ -9,7 +9,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 520px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+    .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 540px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
     h1 { font-size: 1.5rem; text-align: center; margin-bottom: 6px; color: #ffffff; }
     p.subtitle { text-align: center; font-size: 0.85rem; color: #a0a0a0; margin-bottom: 20px; }
     
@@ -37,8 +37,25 @@
     .progress-bg { background-color: #2c2c2c; border-radius: 6px; height: 10px; overflow: hidden; }
     .progress-fill { height: 100%; width: 0%; background-color: #4caf50; border-radius: 6px; transition: width 0.3s ease; }
 
-    .recommendation-box { background-color: #282828; border-left: 4px solid #2196f3; border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.45; }
+    .recommendation-box { background-color: #282828; border-left: 4px solid #2196f3; border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.45; margin-bottom: 20px; }
     .recommendation-box h3 { font-size: 0.95rem; color: #ffffff; margin-bottom: 6px; }
+
+    /* Inspection History Styling */
+    .history-section { background-color: #252525; border-radius: 10px; padding: 16px; border: 1px solid #333; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .history-header h3 { font-size: 0.95rem; color: #ffffff; }
+    .clear-btn { background: none; border: 1px solid #555; color: #aaa; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+    .clear-btn:hover { background-color: #333; color: #fff; }
+    
+    .history-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .history-item { display: flex; align-items: center; gap: 12px; background-color: #1a1a1a; padding: 8px 12px; border-radius: 8px; border-left: 4px solid #555; }
+    .history-item.green { border-left-color: #4caf50; }
+    .history-item.yellow { border-left-color: #fbc02d; }
+    .history-item.brown { border-left-color: #ef5350; }
+    .history-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; }
+    .history-details { flex: 1; display: flex; flex-direction: column; font-size: 0.8rem; }
+    .history-title { font-weight: bold; color: #eee; }
+    .history-time { font-size: 0.7rem; color: #888; }
 
     .meta-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: #777; margin-top: 18px; padding-top: 10px; border-top: 1px solid #2c2c2c; }
   </style>
@@ -50,14 +67,14 @@
     <p class="subtitle">AI-Powered Precision Crop Scouting System</p>
 
     <div class="tabs">
-      <button class="tab-btn active" id="btn-upload" onclick="switchTab('upload')">📁 Upload Photo</button>
+      <button class="tab-btn active" id="btn-upload" onclick="switchTab('upload')">📁 Upload Photos</button>
       <button class="tab-btn" id="btn-webcam" onclick="switchTab('webcam')">📷 Live Camera</button>
     </div>
 
     <!-- Upload Mode UI -->
     <div id="upload-mode" class="input-section">
-      <label for="image-input" class="custom-file-upload">Choose Leaf Photo</label>
-      <input type="file" id="image-input" accept="image/*" onchange="handleImage(event)">
+      <label for="image-input" class="custom-file-upload">Choose Photos (Multiple Allowed)</label>
+      <input type="file" id="image-input" accept="image/*" multiple onchange="handleMultipleImages(event)">
       <div id="preview-container">
         <span id="placeholder-text" style="color: #666; font-size: 0.9rem;">No image selected</span>
         <img id="preview-img" style="display: none;" alt="Leaf preview">
@@ -93,7 +110,18 @@
     <!-- Action Plan Box -->
     <div class="recommendation-box">
       <h3>📋 Field Action Plan</h3>
-      <p id="recommendation-text">Upload or scan a leaf image to generate localized crop diagnostic recommendations.</p>
+      <p id="recommendation-text">Upload or scan leaf images to generate localized crop diagnostic recommendations.</p>
+    </div>
+
+    <!-- Scouting History Log -->
+    <div class="history-section">
+      <div class="history-header">
+        <h3>📜 Scouting History Log</h3>
+        <button class="clear-btn" onclick="clearHistory()">Clear Log</button>
+      </div>
+      <div class="history-list" id="history-list">
+        <div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet.</div>
+      </div>
     </div>
 
     <!-- Scouting Metadata -->
@@ -104,7 +132,6 @@
   </div>
 
   <script>
-    // EXACT CONFIRMED MODEL URL FROM SCREENSHOT
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/Cmr5PfMeI/";
 
     let model = null;
@@ -155,28 +182,39 @@
       }
     }
 
-    async function handleImage(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+    async function handleMultipleImages(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
       await ensureModelLoaded();
       if (!model) return;
 
-      const imgElement = document.getElementById("preview-img");
-      const placeholder = document.getElementById("placeholder-text");
+      for (let i = 0; i < files.length; i++) {
+        await processSingleFile(files[i]);
+      }
+    }
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        imgElement.src = e.target.result;
-        imgElement.style.display = "block";
-        placeholder.style.display = "none";
+    function processSingleFile(file) {
+      return new Promise((resolve) => {
+        const imgElement = document.getElementById("preview-img");
+        const placeholder = document.getElementById("placeholder-text");
 
-        imgElement.onload = async function() {
-          await predictImage(imgElement);
-          updateTimestamp();
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imgSrc = e.target.result;
+          imgElement.src = imgSrc;
+          imgElement.style.display = "block";
+          placeholder.style.display = "none";
+
+          imgElement.onload = async function() {
+            const result = await predictImage(imgElement);
+            updateTimestamp();
+            addToHistory(imgSrc, result.topClass, result.highestProb);
+            resolve();
+          };
         };
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      });
     }
 
     async function startWebcam() {
@@ -217,7 +255,7 @@
     }
 
     async function predictImage(element) {
-      if (!model) return;
+      if (!model) return { topClass: "", highestProb: 0 };
       const predictions = await model.predict(element);
       let highestProb = 0;
       let topClass = "";
@@ -252,6 +290,7 @@
       });
 
       updateDiagnosisUI(topClass);
+      return { topClass, highestProb };
     }
 
     function updateDiagnosisUI(className) {
@@ -277,6 +316,36 @@
     function updateTimestamp() {
       const now = new Date();
       document.getElementById('timestamp-stamp').textContent = 'Timestamp: ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function addToHistory(imageSrc, topClass, probability) {
+      const emptyMsg = document.getElementById("empty-history-msg");
+      if (emptyMsg) emptyMsg.style.display = "none";
+
+      const historyList = document.getElementById("history-list");
+      const percent = Math.round(probability * 100);
+      const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      let themeClass = "brown";
+      if (topClass === 'Green') themeClass = "green";
+      else if (topClass.includes('Yellow')) themeClass = "yellow";
+
+      const item = document.createElement("div");
+      item.className = `history-item ${themeClass}`;
+      item.innerHTML = `
+        <img src="${imageSrc}" class="history-thumb" alt="Thumbnail">
+        <div class="history-details">
+          <span class="history-title">${topClass} (${percent}%)</span>
+          <span class="history-time">${timeString} • Sector A-1</span>
+        </div>
+      `;
+
+      historyList.prepend(item);
+    }
+
+    function clearHistory() {
+      const historyList = document.getElementById("history-list");
+      historyList.innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet.</div>`;
     }
   </script>
 </body>
