@@ -12,17 +12,20 @@
     .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 520px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
     h1 { font-size: 1.5rem; text-align: center; margin-bottom: 6px; color: #ffffff; }
     p.subtitle { text-align: center; font-size: 0.85rem; color: #a0a0a0; margin-bottom: 20px; }
+    
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab-btn { flex: 1; padding: 10px; border: none; background-color: #2c2c2c; color: #a0a0a0; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .tab-btn { flex: 1; padding: 12px; border: none; background-color: #2c2c2c; color: #a0a0a0; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: 0.2s; }
     .tab-btn.active { background-color: #2e7d32; color: #ffffff; }
+
     .input-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
     .custom-file-upload { display: inline-block; padding: 10px 20px; cursor: pointer; background-color: #2196f3; color: white; border-radius: 8px; font-weight: 600; margin-bottom: 16px; }
     input[type="file"] { display: none; }
+    
     #preview-container { width: 100%; height: 260px; background-color: #121212; border: 2px dashed #333; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
     #preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
     #webcam-container { display: none; width: 100%; height: 260px; background-color: #121212; border-radius: 12px; overflow: hidden; justify-content: center; align-items: center; }
-    
-    .status-banner { display: none; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-weight: 700; text-align: center; font-size: 1.05rem; }
+
+    .status-banner { display: block; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-weight: 700; text-align: center; font-size: 1rem; background-color: rgba(255,255,255,0.05); color: #aaa; border: 1px solid #333; }
     .status-green { background-color: rgba(46, 125, 50, 0.25); color: #81c784; border: 1px solid #2e7d32; }
     .status-yellow { background-color: rgba(251, 192, 45, 0.25); color: #fff176; border: 1px solid #fbc02d; }
     .status-brown { background-color: rgba(211, 47, 47, 0.25); color: #e57373; border: 1px solid #d32f2f; }
@@ -46,28 +49,28 @@
     <p class="subtitle">AI-Powered Precision Crop Scouting System</p>
 
     <div class="tabs">
-      <button class="tab-btn active" id="btn-upload" onclick="switchMode('upload')">📁 Upload Photo</button>
-      <button class="tab-btn" id="btn-webcam" onclick="switchMode('webcam')">📷 Live Camera</button>
+      <button class="tab-btn active" id="btn-upload">📁 Upload Photo</button>
+      <button class="tab-btn" id="btn-webcam">📷 Live Camera</button>
     </div>
 
-    <!-- Upload Mode UI -->
+    <!-- Upload Mode -->
     <div id="upload-mode" class="input-section">
       <label for="image-input" class="custom-file-upload">Choose Leaf Photo</label>
-      <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload(event)">
+      <input type="file" id="image-input" accept="image/*">
       <div id="preview-container">
         <span id="placeholder-text" style="color: #666; font-size: 0.9rem;">No image selected</span>
         <img id="preview-img" style="display: none;" alt="Leaf preview">
       </div>
     </div>
 
-    <!-- Webcam Mode UI -->
+    <!-- Webcam Mode -->
     <div id="webcam-mode" class="input-section" style="display: none;">
       <div id="webcam-container"></div>
     </div>
 
     <!-- Status Banner -->
     <div id="status-banner" class="status-banner">
-      Status: Awaiting Inspection
+      Status: Ready for Inspection
     </div>
 
     <!-- Prediction Bars -->
@@ -86,13 +89,13 @@
       </div>
     </div>
 
-    <!-- Recommendation Box -->
+    <!-- Field Action Plan -->
     <div class="recommendation-box" id="recommendation-box">
       <h3>📋 Field Action Plan</h3>
       <p id="recommendation-text">Upload or scan a leaf image to generate localized crop diagnostic recommendations.</p>
     </div>
 
-    <!-- Metadata Stamp -->
+    <!-- Metadata -->
     <div class="meta-info">
       <span>Field Sector: A-1</span>
       <span id="timestamp-stamp">Timestamp: --</span>
@@ -102,7 +105,8 @@
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/r-r5PfMeI/";
 
-    let model, webcam, maxPredictions;
+    let model = null;
+    let webcam = null;
     let isWebcamActive = false;
 
     const recommendations = {
@@ -113,65 +117,73 @@
       "Brown": "🔴 <strong>Fungal / Necrotic Risk:</strong> Severe tissue stress or infection detected. Inspect for blight or drought stress, isolate affected leaves, or consult crop protection spray guidelines."
     };
 
-    async function initModel() {
+    async function loadModel() {
       if (!model) {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
+        document.getElementById('status-banner').textContent = '⌛ Loading AI Model...';
+        model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+        document.getElementById('status-banner').textContent = 'Status: Model Ready';
       }
     }
 
-    async function handleImageUpload(event) {
+    // Tab Event Listeners
+    document.getElementById('btn-upload').addEventListener('click', async () => {
+      document.getElementById('upload-mode').style.display = 'flex';
+      document.getElementById('webcam-mode').style.display = 'none';
+      document.getElementById('btn-upload').classList.add('active');
+      document.getElementById('btn-webcam').classList.remove('active');
+      stopWebcam();
+    });
+
+    document.getElementById('btn-webcam').addEventListener('click', async () => {
+      document.getElementById('upload-mode').style.display = 'none';
+      document.getElementById('webcam-mode').style.display = 'flex';
+      document.getElementById('btn-webcam').classList.add('active');
+      document.getElementById('btn-upload').classList.remove('active');
+      await startWebcam();
+    });
+
+    // Image Upload Handler
+    document.getElementById('image-input').addEventListener('change', async (event) => {
       const file = event.target.files[0];
       if (!file) return;
 
-      await initModel();
+      await loadModel();
 
       const imgElement = document.getElementById("preview-img");
       const placeholder = document.getElementById("placeholder-text");
 
-      imgElement.onload = async function() {
-        await predict(imgElement);
-        updateTimestamp();
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imgElement.src = e.target.result;
+        imgElement.style.display = "block";
+        placeholder.style.display = "none";
+        
+        imgElement.onload = async function() {
+          await predict(imgElement);
+          updateTimestamp();
+        };
       };
-
-      imgElement.src = window.URL.createObjectURL(file);
-      imgElement.style.display = "block";
-      placeholder.style.display = "none";
-    }
-
-    async function switchMode(mode) {
-      await initModel();
-      if (mode === 'upload') {
-        document.getElementById('upload-mode').style.display = 'flex';
-        document.getElementById('webcam-mode').style.display = 'none';
-        document.getElementById('btn-upload').classList.add('active');
-        document.getElementById('btn-webcam').classList.remove('active');
-        stopWebcam();
-      } else {
-        document.getElementById('upload-mode').style.display = 'none';
-        document.getElementById('webcam-mode').style.display = 'flex';
-        document.getElementById('btn-webcam').classList.add('active');
-        document.getElementById('btn-upload').classList.remove('active');
-        startWebcam();
-      }
-    }
+      reader.readAsDataURL(file);
+    });
 
     async function startWebcam() {
+      await loadModel();
       if (!isWebcamActive) {
-        const flip = true;
-        webcam = new tmImage.Webcam(260, 260, flip);
-        await webcam.setup();
-        await webcam.play();
-        isWebcamActive = true;
-        
-        const container = document.getElementById("webcam-container");
-        container.innerHTML = "";
-        container.appendChild(webcam.canvas);
-        container.style.display = "flex";
+        try {
+          webcam = new tmImage.Webcam(260, 260, true);
+          await webcam.setup();
+          await webcam.play();
+          isWebcamActive = true;
 
-        window.requestAnimationFrame(webcamLoop);
+          const container = document.getElementById("webcam-container");
+          container.innerHTML = "";
+          container.appendChild(webcam.canvas);
+          container.style.display = "flex";
+
+          window.requestAnimationFrame(webcamLoop);
+        } catch (err) {
+          alert("Could not access camera. Please check permissions or try uploading a photo.");
+        }
       }
     }
 
@@ -191,9 +203,9 @@
       }
     }
 
-    async function predict(imageElement) {
+    async function predict(inputSource) {
       if (!model) return;
-      const predictions = await model.predict(imageElement);
+      const predictions = await model.predict(inputSource);
       let highestProb = 0;
       let topClass = "";
 
@@ -230,7 +242,6 @@
     function updateDiagnosis(className) {
       const banner = document.getElementById('status-banner');
       const recText = document.getElementById('recommendation-text');
-      banner.style.display = 'block';
 
       if (className === 'Green') {
         banner.className = 'status-banner status-green';
@@ -245,8 +256,6 @@
 
       if (recommendations[className]) {
         recText.innerHTML = recommendations[className];
-      } else {
-        recText.innerHTML = "<strong>Inspection Complete:</strong> Model confidence recorded.";
       }
     }
 
@@ -254,6 +263,9 @@
       const now = new Date();
       document.getElementById('timestamp-stamp').textContent = 'Timestamp: ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
+
+    // Pre-load model on page load
+    window.addEventListener('DOMContentLoaded', loadModel);
   </script>
 </body>
 </html>
