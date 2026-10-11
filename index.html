@@ -7,178 +7,36 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    body {
-      background-color: #121212;
-      color: #e0e0e0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .container {
-      background-color: #1e1e1e;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 520px;
-      width: 100%;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-    }
-    h1 {
-      font-size: 1.5rem;
-      text-align: center;
-      margin-bottom: 6px;
-      color: #ffffff;
-    }
-    p.subtitle {
-      text-align: center;
-      font-size: 0.85rem;
-      color: #a0a0a0;
-      margin-bottom: 20px;
-    }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      background-color: #2c2c2c;
-      color: #a0a0a0;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-    .tab-btn.active {
-      background-color: #2e7d32;
-      color: #ffffff;
-    }
-    .input-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .custom-file-upload {
-      display: inline-block;
-      padding: 10px 20px;
-      cursor: pointer;
-      background-color: #2196f3;
-      color: white;
-      border-radius: 8px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      transition: background 0.2s;
-    }
-    .custom-file-upload:hover {
-      background-color: #1976d2;
-    }
-    input[type="file"] {
-      display: none;
-    }
-    #preview-container {
-      width: 100%;
-      height: 260px;
-      background-color: #121212;
-      border: 2px dashed #333;
-      border-radius: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      position: relative;
-    }
-    #preview-img, #webcam-container canvas {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      border-radius: 8px;
-    }
-    #webcam-container {
-      display: none;
-      width: 100%;
-      height: 260px;
-      background-color: #121212;
-      border-radius: 12px;
-      overflow: hidden;
-      justify-content: center;
-      align-items: center;
-    }
-    /* Diagnosis Status Banner */
-    .status-banner {
-      display: none;
-      padding: 12px 16px;
-      border-radius: 10px;
-      margin-bottom: 18px;
-      font-weight: 700;
-      text-align: center;
-      font-size: 1.05rem;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 520px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+    h1 { font-size: 1.5rem; text-align: center; margin-bottom: 6px; color: #ffffff; }
+    p.subtitle { text-align: center; font-size: 0.85rem; color: #a0a0a0; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background-color: #2c2c2c; color: #a0a0a0; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .tab-btn.active { background-color: #2e7d32; color: #ffffff; }
+    .input-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+    .custom-file-upload { display: inline-block; padding: 10px 20px; cursor: pointer; background-color: #2196f3; color: white; border-radius: 8px; font-weight: 600; margin-bottom: 16px; }
+    input[type="file"] { display: none; }
+    #preview-container { width: 100%; height: 260px; background-color: #121212; border: 2px dashed #333; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    #preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+    #webcam-container { display: none; width: 100%; height: 260px; background-color: #121212; border-radius: 12px; overflow: hidden; justify-content: center; align-items: center; }
+    
+    .status-banner { display: none; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-weight: 700; text-align: center; font-size: 1.05rem; }
     .status-green { background-color: rgba(46, 125, 50, 0.25); color: #81c784; border: 1px solid #2e7d32; }
     .status-yellow { background-color: rgba(251, 192, 45, 0.25); color: #fff176; border: 1px solid #fbc02d; }
     .status-brown { background-color: rgba(211, 47, 47, 0.25); color: #e57373; border: 1px solid #d32f2f; }
 
-    /* Prediction Bars */
-    .label-container {
-      margin-bottom: 20px;
-    }
-    .bar-wrapper {
-      margin-bottom: 12px;
-    }
-    .bar-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.9rem;
-      margin-bottom: 4px;
-    }
-    .progress-bg {
-      background-color: #2c2c2c;
-      border-radius: 6px;
-      height: 10px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background-color: #4caf50;
-      border-radius: 6px;
-      transition: width 0.3s ease;
-    }
+    .label-container { margin-bottom: 20px; }
+    .bar-wrapper { margin-bottom: 12px; }
+    .bar-info { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; }
+    .progress-bg { background-color: #2c2c2c; border-radius: 6px; height: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background-color: #4caf50; border-radius: 6px; transition: width 0.3s ease; }
 
-    /* Actionable Recommendations Box */
-    .recommendation-box {
-      background-color: #282828;
-      border-left: 4px solid #2196f3;
-      border-radius: 8px;
-      padding: 14px;
-      font-size: 0.88rem;
-      line-height: 1.45;
-    }
-    .recommendation-box h3 {
-      font-size: 0.95rem;
-      color: #ffffff;
-      margin-bottom: 6px;
-    }
+    .recommendation-box { background-color: #282828; border-left: 4px solid #2196f3; border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.45; }
+    .recommendation-box h3 { font-size: 0.95rem; color: #ffffff; margin-bottom: 6px; }
 
-    /* Scouting Metadata */
-    .meta-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: #777;
-      margin-top: 18px;
-      padding-top: 10px;
-      border-top: 1px solid #2c2c2c;
-    }
+    .meta-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: #777; margin-top: 18px; padding-top: 10px; border-top: 1px solid #2c2c2c; }
   </style>
 </head>
 <body>
@@ -228,7 +86,7 @@
       </div>
     </div>
 
-    <!-- Actionable Recommendation Box -->
+    <!-- Recommendation Box -->
     <div class="recommendation-box" id="recommendation-box">
       <h3>📋 Field Action Plan</h3>
       <p id="recommendation-text">Upload or scan a leaf image to generate localized crop diagnostic recommendations.</p>
@@ -242,13 +100,11 @@
   </div>
 
   <script>
-    // YOUR TEACHABLE MACHINE MODEL LINK
     const URL = "https://teachablemachine.withgoogle.com/models/r-r5PfMeI/";
 
-    let model, webcam, labelContainer, maxPredictions;
+    let model, webcam, maxPredictions;
     let isWebcamActive = false;
 
-    // Recommendations Map
     const recommendations = {
       "Green": "🟢 <strong>Optimal Health:</strong> Crop exhibits healthy chlorophyll levels. Maintain standard irrigation and fertilization schedules.",
       "Yellowing": "🟡 <strong>Nutrient Stress Warning:</strong> Potential Nitrogen deficiency or over-watering detected. Inspect root moisture levels and consider balanced N-P-K soil treatment.",
@@ -267,22 +123,22 @@
     }
 
     async function handleImageUpload(event) {
-      await initModel();
       const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const imgElement = document.getElementById("preview-img");
-          imgElement.src = e.target.result;
-          imgElement.style.display = "block";
-          document.getElementById("placeholder-text").style.display = "none";
-          imgElement.onload = async function() {
-            await predict(imgElement);
-            updateTimestamp();
-          };
-        };
-        reader.readAsDataURL(file);
-      }
+      if (!file) return;
+
+      await initModel();
+
+      const imgElement = document.getElementById("preview-img");
+      const placeholder = document.getElementById("placeholder-text");
+
+      imgElement.onload = async function() {
+        await predict(imgElement);
+        updateTimestamp();
+      };
+
+      imgElement.src = window.URL.createObjectURL(file);
+      imgElement.style.display = "block";
+      placeholder.style.display = "none";
     }
 
     async function switchMode(mode) {
@@ -336,6 +192,7 @@
     }
 
     async function predict(imageElement) {
+      if (!model) return;
       const predictions = await model.predict(imageElement);
       let highestProb = 0;
       let topClass = "";
@@ -367,7 +224,6 @@
         }
       });
 
-      // Update Diagnosis Banner & Recommendation Box
       updateDiagnosis(topClass);
     }
 
