@@ -313,6 +313,15 @@
         }
       });
 
+      // DETERMINE STATUS BASED ON THRESHOLD, BUT KEEP REAL MODEL PERCENTAGES
+      let statusClass = topClass;
+      if (probabilities["Brown_Discolored"] && probabilities["Brown_Discolored"] >= 30) {
+        statusClass = "Brown_Discolored"; // Triggers high risk banner/action plan
+      }
+
+      updateUI(statusClass, probabilities); // Passes real percentages to UI, but flags status
+      return { topClass: statusClass, probabilities };
+    }
       // SMART OVERRIDE: If brown/discolored spots are significant (>=30%), flag as High Risk
       if (probabilities["Brown_Discolored"] && probabilities["Brown_Discolored"] >= 30) {
         topClass = "Brown_Discolored";
