@@ -8,8 +8,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 580px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); transition: max-width 0.4s ease; }
+    body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow-x: hidden; }
+    .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 580px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); transition: max-width 0.4s ease; position: relative; z-index: 10; }
     
     /* Inspection Mode Layout (Activated on History Click) */
     .container.inspect-mode { max-width: 760px; }
@@ -80,9 +80,41 @@
     .history-hint { font-size: 0.68rem; color: #4fc3f7; margin-top: 2px; }
 
     .meta-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: #777; margin-top: 18px; padding-top: 10px; border-top: 1px solid #2c2c2c; }
+
+    /* Multi-Color Swipe Transition Overlay */
+    #swipe-transition-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+    }
+    .swipe-stripe {
+      width: 100%;
+      height: 100%;
+      transform: translateX(-100%);
+      position: absolute;
+      top: 0; left: 0;
+    }
+    @keyframes swipeCurtain {
+      0% { transform: translateX(-100%); }
+      50% { transform: translateX(0%); }
+      100% { transform: translateX(100%); }
+    }
+    .swipe-stripe.animate {
+      animation: swipeCurtain 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Swipe Transition Stripes -->
+  <div id="swipe-transition-overlay">
+    <div class="swipe-stripe" id="stripe-1" style="background-color: #2196f3; animation-delay: 0s;"></div>
+    <div class="swipe-stripe" id="stripe-2" style="background-color: #2e7d32; animation-delay: 0.1s;"></div>
+    <div class="swipe-stripe" id="stripe-3" style="background-color: #fbc02d; animation-delay: 0.2s;"></div>
+  </div>
 
   <div class="container" id="main-container">
     <h1>🌿 Leaf Color & Health Detector</h1>
@@ -156,7 +188,7 @@
     <div class="history-section">
       <div class="history-header">
         <h3>📜 Scouting History Log</h3>
-        <button class="clear-btn" onclick="clearHistory()">Clear Log</button>
+        <button class="clear-btn" onclick="clearHistoryWithAnimation()">Clear Log</button>
       </div>
       <div class="history-list" id="history-list">
         <div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>
@@ -475,9 +507,60 @@
       container.classList.remove("inspect-mode");
     }
 
-    function clearHistory() {
-      const historyList = document.getElementById("history-list");
-      historyList.innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>`;
+    function clearHistoryWithAnimation() {
+      // Trigger multi-color swipe animation
+      const stripe1 = document.getElementById('stripe-1');
+      const stripe2 = document.getElementById('stripe-2');
+      const stripe3 = document.getElementById('stripe-3');
+
+      // Restart animations
+      [stripe1, stripe2, stripe3].forEach(stripe => {
+        stripe.classList.remove('animate');
+        void stripe.offsetWidth; // trigger reflow
+        stripe.classList.add('animate');
+      });
+
+      // Halfway through the animation (when screen is fully covered), wipe all leaf info and history
+      setTimeout(() => {
+        // Clear history log
+        const historyList = document.getElementById("history-list");
+        historyList.innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>`;
+
+        // Reset main preview image
+        const imgElement = document.getElementById("preview-img");
+        const placeholder = document.getElementById("placeholder-text");
+        imgElement.style.display = "none";
+        imgElement.src = "";
+        placeholder.style.display = "block";
+
+        // Reset status banner
+        const banner = document.getElementById('status-banner');
+        banner.className = 'status-banner';
+        banner.textContent = 'Status: Ready for Inspection';
+
+        // Reset percentage bars
+        for (let i = 0; i < 3; i++) {
+          const classLabel = document.getElementById(`class-${i}`);
+          const percentLabel = document.getElementById(`percent-${i}`);
+          const fillBar = document.getElementById(`fill-${i}`);
+          if (classLabel && percentLabel && fillBar) {
+            classLabel.textContent = i === 0 ? "Green" : (i === 1 ? "Yellowing" : "Brown / Discolored");
+            percentLabel.textContent = "0%";
+            fillBar.style.width = "0%";
+            fillBar.style.backgroundColor = "#4caf50";
+          }
+        }
+
+        // Reset Action Plan Box
+        const recText = document.getElementById('recommendation-text');
+        recText.innerHTML = "Upload or scan a leaf image to generate localized crop diagnostic recommendations.";
+
+        // Reset timestamp
+        document.getElementById('timestamp-stamp').textContent = 'Timestamp: --';
+
+        // Exit inspection mode if active
+        exitInspectMode();
+      }, 400); // 400ms is exactly the peak of the swipe transition
     }
   </script>
 </body>
