@@ -315,8 +315,8 @@
         }
       });
 
-      // GATEKEEPER: If it's classified as Not_A_Leaf or confidence is high, block plant analysis
-      if (topClass === "Not_A_Leaf" || (probabilities["Not_A_Leaf"] && probabilities["Not_A_Leaf"] >= 50)) {
+      // SENSITIVE GATEKEEPER: If Not_A_Leaf is detected at 30% or higher, block plant analysis immediately
+      if (topClass === "Not_A_Leaf" || (probabilities["Not_A_Leaf"] && probabilities["Not_A_Leaf"] >= 30)) {
         updateInvalidUI();
         return { topClass: "Not_A_Leaf", probabilities };
       }
