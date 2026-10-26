@@ -72,6 +72,7 @@
     .history-item.green { border-left-color: #4caf50; }
     .history-item.yellow { border-left-color: #fbc02d; }
     .history-item.brown { border-left-color: #ef5350; }
+    .history-item.error { border-left-color: #ff8a80; }
     .history-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; }
     .history-details { flex: 1; display: flex; flex-direction: column; font-size: 0.8rem; }
     .history-title { font-weight: bold; color: #eee; }
@@ -181,7 +182,8 @@
       "Yellowing": "🟡 <strong>Nutrient Stress Warning:</strong> Potential Nitrogen deficiency or over-watering detected. Inspect root moisture levels and consider balanced N-P-K soil treatment.",
       "Brown_Discolored": "🔴 <strong>Fungal / Necrotic Risk:</strong> Severe tissue stress or infection detected. Inspect for blight or drought stress, isolate affected leaves, or consult crop protection spray guidelines.",
       "Yellow": "🟡 <strong>Nutrient Stress Warning:</strong> Potential Nitrogen deficiency or over-watering detected. Inspect root moisture levels and consider balanced N-P-K soil treatment.",
-      "Brown": "🔴 <strong>Fungal / Necrotic Risk:</strong> Severe tissue stress or infection detected. Inspect for blight or drought stress, isolate affected leaves, or consult crop protection spray guidelines."
+      "Brown": "🔴 <strong>Fungal / Necrotic Risk:</strong> Severe tissue stress or infection detected. Inspect for blight or drought stress, isolate affected leaves, or consult crop protection spray guidelines.",
+      "Not_A_Leaf": "⚠️ <strong>Invalid Input:</strong> No plant leaf detected in this image. Please upload a clear photo or scan of an agricultural leaf for analysis."
     };
 
     async function ensureModelLoaded() {
@@ -313,14 +315,59 @@
         }
       });
 
-      // Determine status banner based on threshold, keeping real percentages intact
-      let statusClass = topClass;
-      if (probabilities["Brown_Discolored"] && probabilities["Brown_Discolored"] >= 30) {
-        statusClass = "Brown_Discolored";
+      // GATEKEEPER: If it's classified as Not_A_Leaf or confidence is high, block plant analysis
+      if (topClass === "Not_A_Leaf" || (probabilities["Not_A_Leaf"] && probabilities["Not_A_Leaf"] >= 50)) {
+        updateInvalidUI();
+        return { topClass: "Not_A_Leaf", probabilities };
       }
 
-      updateUI(statusClass, probabilities);
-      return { topClass: statusClass, probabilities };
+      // Filter out Not_A_Leaf from the main health percentage bars
+      const plantProbabilities = {};
+      let plantHighestProb = 0;
+      let plantTopClass = "Green";
+
+      for (const [cls, pct] of Object.entries(probabilities)) {
+        if (cls !== "Not_A_Leaf") {
+          plantProbabilities[cls] = pct;
+          if (pct > plantHighestProb) {
+            plantHighestProb = pct;
+            plantTopClass = cls;
+          }
+        }
+      }
+
+      // Smart Override for Necrosis/Blight threshold
+      let statusClass = plantTopClass;
+      if (plantProbabilities["Brown_Discolored"] && plantProbabilities["Brown_Discolored"] >= 30) {
+        statusClass = "Brown_Discolored";
+      } else if (plantProbabilities["Brown"] && plantProbabilities["Brown"] >= 30) {
+        statusClass = "Brown";
+      }
+
+      updateUI(statusClass, plantProbabilities);
+      return { topClass: statusClass, probabilities: plantProbabilities };
+    }
+
+    function updateInvalidUI() {
+      const banner = document.getElementById('status-banner');
+      const recText = document.getElementById('recommendation-text');
+
+      banner.className = 'status-banner status-error';
+      banner.textContent = '⚠️ STATUS: INVALID INPUT (Not a Leaf)';
+
+      // Clear the health bars so they don't show confusing percentages
+      for (let i = 0; i < 3; i++) {
+        const classLabel = document.getElementById(`class-${i}`);
+        const percentLabel = document.getElementById(`percent-${i}`);
+        const fillBar = document.getElementById(`fill-${i}`);
+        if (classLabel && percentLabel && fillBar) {
+          classLabel.textContent = "---";
+          percentLabel.textContent = "0%";
+          fillBar.style.width = "0%";
+        }
+      }
+
+      recText.innerHTML = recommendations["Not_A_Leaf"];
     }
 
     function updateUI(topClass, probabilities) {
@@ -365,6 +412,9 @@
       } else if (className.includes('Brown') || className.includes('Discolored')) {
         banner.className = 'status-banner status-brown';
         banner.textContent = '🔴 STATUS: HIGH RISK / STRESSED';
+      } else if (className === 'Not_A_Leaf') {
+        banner.className = 'status-banner status-error';
+        banner.textContent = '⚠️ STATUS: INVALID INPUT';
       }
 
       if (recommendations[className]) {
@@ -388,6 +438,7 @@
       let themeClass = "brown";
       if (topClass === 'Green') themeClass = "green";
       else if (topClass.includes('Yellow')) themeClass = "yellow";
+      else if (topClass === 'Not_A_Leaf') themeClass = "error";
 
       const item = document.createElement("div");
       item.className = `history-item ${themeClass}`;
@@ -409,7 +460,11 @@
         container.classList.add("inspect-mode");
         inspectImg.src = imageSrc;
 
-        updateUI(topClass, probabilities);
+        if (topClass === 'Not_A_Leaf') {
+          updateInvalidUI();
+        } else {
+          updateUI(topClass, probabilities);
+        }
       });
 
       historyList.prepend(item);
