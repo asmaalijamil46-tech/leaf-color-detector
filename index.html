@@ -146,6 +146,7 @@
         <!-- Webcam Mode UI -->
         <div id="webcam-mode" class="input-section" style="display: none;">
           <div id="webcam-container"></div>
+          <button class="back-btn" id="flip-cam-btn" onclick="switchCamera()" style="margin-top: 10px; display: none;">🔄 Switch Camera</button>
         </div>
 
         <!-- Dedicated Inspect Mode Image Box -->
@@ -208,6 +209,7 @@
     let model = null;
     let webcam = null;
     let isWebcamActive = false;
+    let currentFacingMode = "environment"; // Default to rear camera for scouting
 
     const recommendations = {
       "Green": "🟢 <strong>Optimal Health:</strong> Crop exhibits healthy chlorophyll levels. Maintain standard irrigation and fertilization schedules.",
@@ -297,21 +299,19 @@
 
     async function startWebcam() {
       await ensureModelLoaded();
-      if (!isWebcamActive && model) {
+      if (model) {
         try {
-          webcam = new tmImage.Webcam(260, 260, false); // false = don't mirror rear camera
-          
-          // Try preferring rear/environment camera on mobile devices
-          const constraints = {
-            video: { facingMode: { exact: "environment" } }
-          };
-          
-          try {
-            await webcam.setup(constraints);
-          } catch (e) {
-            await webcam.setup(); // Fallback if rear camera constraint isn't supported
+          if (webcam && isWebcamActive) {
+            webcam.stop();
           }
 
+          webcam = new tmImage.Webcam(260, 260, false);
+          
+          const constraints = {
+            video: { facingMode: currentFacingMode }
+          };
+          
+          await webcam.setup(constraints);
           await webcam.play();
           isWebcamActive = true;
 
@@ -320,10 +320,22 @@
           container.appendChild(webcam.canvas);
           container.style.display = "flex";
 
+          // Show flip camera button
+          document.getElementById("flip-cam-btn").style.display = "inline-flex";
+
           window.requestAnimationFrame(webcamLoop);
         } catch (err) {
-          alert("Camera access denied or unavailable. Please use photo upload mode.");
+          console.error("Camera error:", err);
+          alert("Camera access denied or rear camera unavailable. Please try photo upload mode.");
         }
+      }
+    }
+
+    async function switchCamera() {
+      currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+      if (isWebcamActive) {
+        stopWebcam();
+        await startWebcam();
       }
     }
 
@@ -332,6 +344,7 @@
         webcam.stop();
         isWebcamActive = false;
         document.getElementById("webcam-container").style.display = "none";
+        document.getElementById("flip-cam-btn").style.display = "none";
       }
     }
 
@@ -566,6 +579,3 @@
   </script>
 </body>
 </html>
-
-  
-            
