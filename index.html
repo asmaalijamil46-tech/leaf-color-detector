@@ -299,8 +299,19 @@
       await ensureModelLoaded();
       if (!isWebcamActive && model) {
         try {
-          webcam = new tmImage.Webcam(260, 260, true);
-          await webcam.setup();
+          webcam = new tmImage.Webcam(260, 260, false); // false = don't mirror rear camera
+          
+          // Try preferring rear/environment camera on mobile devices
+          const constraints = {
+            video: { facingMode: { exact: "environment" } }
+          };
+          
+          try {
+            await webcam.setup(constraints);
+          } catch (e) {
+            await webcam.setup(); // Fallback if rear camera constraint isn't supported
+          }
+
           await webcam.play();
           isWebcamActive = true;
 
@@ -513,32 +524,26 @@
       const stripe2 = document.getElementById('stripe-2');
       const stripe3 = document.getElementById('stripe-3');
 
-      // Restart animations
       [stripe1, stripe2, stripe3].forEach(stripe => {
         stripe.classList.remove('animate');
-        void stripe.offsetWidth; // trigger reflow
+        void stripe.offsetWidth;
         stripe.classList.add('animate');
       });
 
-      // Halfway through the animation (when screen is fully covered), wipe all leaf info and history
       setTimeout(() => {
-        // Clear history log
         const historyList = document.getElementById("history-list");
         historyList.innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>`;
 
-        // Reset main preview image
         const imgElement = document.getElementById("preview-img");
         const placeholder = document.getElementById("placeholder-text");
         imgElement.style.display = "none";
         imgElement.src = "";
         placeholder.style.display = "block";
 
-        // Reset status banner
         const banner = document.getElementById('status-banner');
         banner.className = 'status-banner';
         banner.textContent = 'Status: Ready for Inspection';
 
-        // Reset percentage bars
         for (let i = 0; i < 3; i++) {
           const classLabel = document.getElementById(`class-${i}`);
           const percentLabel = document.getElementById(`percent-${i}`);
@@ -551,17 +556,16 @@
           }
         }
 
-        // Reset Action Plan Box
         const recText = document.getElementById('recommendation-text');
         recText.innerHTML = "Upload or scan a leaf image to generate localized crop diagnostic recommendations.";
 
-        // Reset timestamp
         document.getElementById('timestamp-stamp').textContent = 'Timestamp: --';
-
-        // Exit inspection mode if active
         exitInspectMode();
-      }, 400); // 400ms is exactly the peak of the swipe transition
+      }, 400);
     }
   </script>
 </body>
 </html>
+
+  
+            
