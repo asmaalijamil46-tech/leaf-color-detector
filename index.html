@@ -305,7 +305,8 @@
           isWebcamActive = false;
         }
 
-        const isUserFacing = currentFacingMode === "user";
+        // Fix mirroring: false for environment (rear camera), true for user (front selfie camera)
+        const isUserFacing = (currentFacingMode === "user");
         webcam = new tmImage.Webcam(260, 260, isUserFacing);
         
         await webcam.setup({ video: { facingMode: { ideal: currentFacingMode } } });
@@ -328,6 +329,7 @@
     }
 
     async function switchCamera() {
+      // Toggle facing mode and restart webcam with correct mirror settings
       currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
       await startWebcam();
     }
