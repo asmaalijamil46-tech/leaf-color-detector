@@ -209,7 +209,7 @@
     let model = null;
     let webcam = null;
     let isWebcamActive = false;
-    let currentFacingMode = "environment"; // Default to rear camera for agricultural scouting
+    let currentFacingMode = "environment"; // Default to rear camera for scouting
 
     const recommendations = {
       "Green": "🟢 <strong>Optimal Health:</strong> Crop exhibits healthy chlorophyll levels. Maintain standard irrigation and fertilization schedules.",
@@ -301,18 +301,14 @@
 
       try {
         if (webcam && isWebcamActive) {
-          webcam.stop();
+          await webcam.stop();
+          isWebcamActive = false;
         }
 
-        webcam = new tmImage.Webcam(260, 260, false);
+        const isUserFacing = currentFacingMode === "user";
+        webcam = new tmImage.Webcam(260, 260, isUserFacing);
         
-        try {
-          await webcam.setup({ video: { facingMode: currentFacingMode } });
-        } catch (setupError) {
-          console.warn("Preferred facingMode failed, falling back to default camera:", setupError);
-          await webcam.setup();
-        }
-
+        await webcam.setup({ video: { facingMode: { ideal: currentFacingMode } } });
         await webcam.play();
         isWebcamActive = true;
 
@@ -327,13 +323,12 @@
         window.requestAnimationFrame(webcamLoop);
       } catch (err) {
         console.error("Camera access error:", err);
-        alert("Camera access was denied or unavailable. Please check your browser permissions or try Photo Upload mode.");
+        alert("Could not access camera. Please check your browser permissions or try Photo Upload mode.");
       }
     }
 
     async function switchCamera() {
       currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
-      stopWebcam();
       await startWebcam();
     }
 
