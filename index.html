@@ -209,7 +209,7 @@
     let model = null;
     let webcam = null;
     let isWebcamActive = false;
-    let currentFacingMode = "environment"; // Default to rear camera for scouting
+    let currentFacingMode = "environment"; // Default to rear camera for agricultural scouting
 
     const recommendations = {
       "Green": "🟢 <strong>Optimal Health:</strong> Crop exhibits healthy chlorophyll levels. Maintain standard irrigation and fertilization schedules.",
@@ -278,14 +278,12 @@
           tempImg.src = imgSrc;
 
           tempImg.onload = async function() {
-            // Display live in main preview
             const imgElement = document.getElementById("preview-img");
             const placeholder = document.getElementById("placeholder-text");
             imgElement.src = imgSrc;
             imgElement.style.display = "block";
             placeholder.style.display = "none";
 
-            // Run prediction once
             const preds = await model.predict(tempImg);
             const res = parsePredictions(preds);
             updateTimestamp();
@@ -299,44 +297,44 @@
 
     async function startWebcam() {
       await ensureModelLoaded();
-      if (model) {
-        try {
-          if (webcam && isWebcamActive) {
-            webcam.stop();
-          }
+      if (!model) return;
 
-          webcam = new tmImage.Webcam(260, 260, false);
-          
-          const constraints = {
-            video: { facingMode: currentFacingMode }
-          };
-          
-          await webcam.setup(constraints);
-          await webcam.play();
-          isWebcamActive = true;
-
-          const container = document.getElementById("webcam-container");
-          container.innerHTML = "";
-          container.appendChild(webcam.canvas);
-          container.style.display = "flex";
-
-          // Show flip camera button
-          document.getElementById("flip-cam-btn").style.display = "inline-flex";
-
-          window.requestAnimationFrame(webcamLoop);
-        } catch (err) {
-          console.error("Camera error:", err);
-          alert("Camera access denied or rear camera unavailable. Please try photo upload mode.");
+      try {
+        if (webcam && isWebcamActive) {
+          webcam.stop();
         }
+
+        webcam = new tmImage.Webcam(260, 260, false);
+        
+        try {
+          await webcam.setup({ video: { facingMode: currentFacingMode } });
+        } catch (setupError) {
+          console.warn("Preferred facingMode failed, falling back to default camera:", setupError);
+          await webcam.setup();
+        }
+
+        await webcam.play();
+        isWebcamActive = true;
+
+        const container = document.getElementById("webcam-container");
+        container.innerHTML = "";
+        container.appendChild(webcam.canvas);
+        container.style.display = "flex";
+
+        const flipBtn = document.getElementById("flip-cam-btn");
+        if (flipBtn) flipBtn.style.display = "inline-flex";
+
+        window.requestAnimationFrame(webcamLoop);
+      } catch (err) {
+        console.error("Camera access error:", err);
+        alert("Camera access was denied or unavailable. Please check your browser permissions or try Photo Upload mode.");
       }
     }
 
     async function switchCamera() {
-      currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
-      if (isWebcamActive) {
-        stopWebcam();
-        await startWebcam();
-      }
+      currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+      stopWebcam();
+      await startWebcam();
     }
 
     function stopWebcam() {
@@ -344,7 +342,8 @@
         webcam.stop();
         isWebcamActive = false;
         document.getElementById("webcam-container").style.display = "none";
-        document.getElementById("flip-cam-btn").style.display = "none";
+        const flipBtn = document.getElementById("flip-cam-btn");
+        if (flipBtn) flipBtn.style.display = "none";
       }
     }
 
@@ -371,13 +370,11 @@
         }
       });
 
-      // SENSITIVE GATEKEEPER: If Not_A_Leaf is detected at 30% or higher, block plant analysis immediately
       if (topClass === "Not_A_Leaf" || (probabilities["Not_A_Leaf"] && probabilities["Not_A_Leaf"] >= 30)) {
         updateInvalidUI();
         return { topClass: "Not_A_Leaf", probabilities };
       }
 
-      // Filter out Not_A_Leaf from the main health percentage bars
       const plantProbabilities = {};
       let plantHighestProb = 0;
       let plantTopClass = "Green";
@@ -392,7 +389,6 @@
         }
       }
 
-      // Smart Override for Necrosis/Blight threshold
       let statusClass = plantTopClass;
       if (plantProbabilities["Brown_Discolored"] && plantProbabilities["Brown_Discolored"] >= 30) {
         statusClass = "Brown_Discolored";
@@ -411,7 +407,6 @@
       banner.className = 'status-banner status-error';
       banner.textContent = '⚠️ STATUS: INVALID INPUT (Not a Leaf)';
 
-      // Clear the health bars so they don't show confusing percentages
       for (let i = 0; i < 3; i++) {
         const classLabel = document.getElementById(`class-${i}`);
         const percentLabel = document.getElementById(`percent-${i}`);
@@ -507,7 +502,6 @@
         </div>
       `;
 
-      // Click to enter dedicated Inspection Mode
       item.addEventListener("click", () => {
         stopWebcam();
         const container = document.getElementById("main-container");
@@ -532,7 +526,6 @@
     }
 
     function clearHistoryWithAnimation() {
-      // Trigger multi-color swipe animation
       const stripe1 = document.getElementById('stripe-1');
       const stripe2 = document.getElementById('stripe-2');
       const stripe3 = document.getElementById('stripe-3');
