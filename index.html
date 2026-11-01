@@ -11,7 +11,6 @@
     body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow-x: hidden; }
     .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 580px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); transition: max-width 0.4s ease; position: relative; z-index: 10; }
     
-    /* Inspection Mode Layout (Activated on History Click) */
     .container.inspect-mode { max-width: 760px; }
     .container.inspect-mode .tabs,
     .container.inspect-mode #upload-mode,
@@ -59,7 +58,6 @@
     .recommendation-box { background-color: #282828; border-left: 4px solid #2196f3; border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.45; margin-bottom: 20px; }
     .recommendation-box h3 { font-size: 0.95rem; color: #ffffff; margin-bottom: 6px; }
 
-    /* Scouting History Styling */
     .history-section { background-color: #252525; border-radius: 10px; padding: 16px; border: 1px solid #333; }
     .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .history-header h3 { font-size: 0.95rem; color: #ffffff; }
@@ -81,7 +79,6 @@
 
     .meta-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: #777; margin-top: 18px; padding-top: 10px; border-top: 1px solid #2c2c2c; }
 
-    /* Multi-Color Swipe Transition Overlay */
     #swipe-transition-overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -109,7 +106,6 @@
 </head>
 <body>
 
-  <!-- Swipe Transition Stripes -->
   <div id="swipe-transition-overlay">
     <div class="swipe-stripe" id="stripe-1" style="background-color: #2196f3; animation-delay: 0s;"></div>
     <div class="swipe-stripe" id="stripe-2" style="background-color: #2e7d32; animation-delay: 0.1s;"></div>
@@ -120,7 +116,6 @@
     <h1>🌿 Leaf Color & Health Detector</h1>
     <p class="subtitle">AI-Powered Precision Crop Scouting System</p>
 
-    <!-- Back Button for Inspection Mode -->
     <div id="back-btn-container">
       <button class="back-btn" onclick="exitInspectMode()">← Back to Main</button>
     </div>
@@ -130,10 +125,8 @@
       <button class="tab-btn" id="btn-webcam" onclick="switchTab('webcam')">📷 Live Camera</button>
     </div>
 
-    <!-- Workspace Layout -->
     <div class="workspace" id="workspace-layout">
       <div class="inspect-left">
-        <!-- Upload Mode UI -->
         <div id="upload-mode" class="input-section">
           <label for="image-input" class="custom-file-upload">Choose Photos (Multiple Allowed)</label>
           <input type="file" id="image-input" accept="image/*" multiple onchange="handleMultipleImages(event)">
@@ -143,25 +136,21 @@
           </div>
         </div>
 
-        <!-- Webcam Mode UI -->
         <div id="webcam-mode" class="input-section" style="display: none;">
           <div id="webcam-container"></div>
           <button class="back-btn" id="flip-cam-btn" onclick="switchCamera()" style="margin-top: 10px; display: none;">🔄 Switch Camera</button>
         </div>
 
-        <!-- Dedicated Inspect Mode Image Box -->
         <div id="inspect-preview-container">
           <img id="inspect-preview-img" alt="Inspected leaf">
         </div>
       </div>
 
       <div class="inspect-right">
-        <!-- Diagnosis Status Banner -->
         <div id="status-banner" class="status-banner">
           Status: Ready for Inspection
         </div>
 
-        <!-- Dynamic Class Bars -->
         <div class="label-container" id="label-container">
           <div class="bar-wrapper">
             <div class="bar-info"><span id="class-0">Green</span><span id="percent-0">0%</span></div>
@@ -177,7 +166,6 @@
           </div>
         </div>
 
-        <!-- Action Plan Box -->
         <div class="recommendation-box" id="recommendation-box">
           <h3>📋 Field Action Plan</h3>
           <p id="recommendation-text">Upload or scan a leaf image to generate localized crop diagnostic recommendations.</p>
@@ -185,7 +173,6 @@
       </div>
     </div>
 
-    <!-- Scouting History Log -->
     <div class="history-section">
       <div class="history-header">
         <h3>📜 Scouting History Log</h3>
@@ -196,7 +183,6 @@
       </div>
     </div>
 
-    <!-- Scouting Metadata -->
     <div class="meta-info">
       <span>Field Sector: A-1</span>
       <span id="timestamp-stamp">Timestamp: --</span>
@@ -209,7 +195,8 @@
     let model = null;
     let webcam = null;
     let isWebcamActive = false;
-    let currentFacingMode = "environment"; // Default to rear camera for scouting
+    let currentFacingMode = "environment"; // Start with rear camera
+    let videoDevices = [];
 
     const recommendations = {
       "Green": "🟢 <strong>Optimal Health:</strong> Crop exhibits healthy chlorophyll levels. Maintain standard irrigation and fertilization schedules.",
@@ -266,7 +253,7 @@
       for (let i = 0; i < files.length; i++) {
         await processAndLogFile(files[i]);
       }
-      event.target.value = ""; // Reset input
+      event.target.value = "";
     }
 
     function processAndLogFile(file) {
@@ -305,11 +292,31 @@
           isWebcamActive = false;
         }
 
-        // Fix mirroring: false for environment (rear camera), true for user (front selfie camera)
-        const isUserFacing = (currentFacingMode === "user");
-        webcam = new tmImage.Webcam(260, 260, isUserFacing);
+        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          videoDevices = devices.filter(d => d.kind === 'videoinput');
+        }
+
+        webcam = new tmImage.Webcam(260, 260, currentFacingMode === "user");
+
+        let constraints = { video: { facingMode: currentFacingMode } };
         
-        await webcam.setup({ video: { facingMode: { ideal: currentFacingMode } } });
+        if (videoDevices.length > 1) {
+          const matchingDevice = videoDevices.find(d => {
+            const label = d.label.toLowerCase();
+            if (currentFacingMode === "environment") {
+              return label.includes('back') || label.includes('rear') || label.includes('environment');
+            } else {
+              return label.includes('front') || label.includes('user') || label.includes('selfie');
+            }
+          });
+
+          if (matchingDevice) {
+            constraints = { video: { deviceId: { exact: matchingDevice.deviceId } } };
+          }
+        }
+
+        await webcam.setup(constraints);
         await webcam.play();
         isWebcamActive = true;
 
@@ -323,13 +330,25 @@
 
         window.requestAnimationFrame(webcamLoop);
       } catch (err) {
-        console.error("Camera access error:", err);
-        alert("Could not access camera. Please check your browser permissions or try Photo Upload mode.");
+        console.warn("Constraint camera setup failed, trying fallback:", err);
+        try {
+          webcam = new tmImage.Webcam(260, 260, currentFacingMode === "user");
+          await webcam.setup();
+          await webcam.play();
+          isWebcamActive = true;
+          const container = document.getElementById("webcam-container");
+          container.innerHTML = "";
+          container.appendChild(webcam.canvas);
+          container.style.display = "flex";
+          document.getElementById("flip-cam-btn").style.display = "inline-flex";
+          window.requestAnimationFrame(webcamLoop);
+        } catch (fallbackErr) {
+          alert("Could not access camera. Please check your browser permissions.");
+        }
       }
     }
 
     async function switchCamera() {
-      // Toggle facing mode and restart webcam with correct mirror settings
       currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
       await startWebcam();
     }
