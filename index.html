@@ -10,63 +10,49 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow-x: hidden; }
     .container { background-color: #1e1e1e; border-radius: 16px; padding: 24px; max-width: 580px; width: 100%; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); transition: max-width 0.4s ease; position: relative; z-index: 10; }
-
     .container.inspect-mode { max-width: 760px; }
     .container.inspect-mode .tabs,
     .container.inspect-mode #upload-mode,
     .container.inspect-mode #webcam-mode { display: none !important; }
-
     .container.inspect-mode .workspace { display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; }
     .container.inspect-mode .inspect-left { flex: 1; display: flex; flex-direction: column; }
     .container.inspect-mode .inspect-right { flex: 1.2; display: flex; flex-direction: column; justify-content: center; }
     .container.inspect-mode #inspect-preview-container { display: flex !important; width: 100%; height: 260px; background-color: #121212; border: 2px solid #333; border-radius: 12px; justify-content: center; align-items: center; overflow: hidden; position: relative; }
     .container.inspect-mode #inspect-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
     .container.inspect-mode #back-btn-container { display: block !important; margin-bottom: 16px; }
-
     #inspect-preview-container, #back-btn-container { display: none; }
-
     h1 { font-size: 1.5rem; text-align: center; margin-bottom: 6px; color: #ffffff; }
     p.subtitle { text-align: center; font-size: 0.85rem; color: #a0a0a0; margin-bottom: 20px; }
-
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab-btn { flex: 1; padding: 12px; border: none; background-color: #2c2c2c; color: #a0a0a0; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
     .tab-btn.active { background-color: #2e7d32; color: #ffffff; }
-
     .input-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; width: 100%; }
     .custom-file-upload { display: inline-block; padding: 12px 24px; cursor: pointer; background-color: #2196f3; color: white; border-radius: 8px; font-weight: 600; margin-bottom: 16px; width: 100%; text-align: center; }
     input[type="file"] { display: none; }
-
     #preview-container { width: 100%; height: 260px; background-color: #121212; border: 2px dashed #333; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
     #preview-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
     #webcam-container { display: none; width: 100%; height: 260px; background-color: #121212; border-radius: 12px; overflow: hidden; justify-content: center; align-items: center; position: relative; }
     #webcam-container video { width: 100%; height: 100%; object-fit: cover; }
-
     .camera-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.55); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; pointer-events: none; z-index: 5; }
-
     .back-btn { background: #2c2c2c; border: 1px solid #444; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .back-btn:hover { background-color: #383838; }
-
     .status-banner { padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-weight: 700; text-align: center; font-size: 0.95rem; background-color: rgba(255,255,255,0.05); color: #aaa; border: 1px solid #333; transition: all 0.3s ease; }
     .status-green { background-color: rgba(46, 125, 50, 0.25); color: #81c784; border: 1px solid #2e7d32; }
     .status-yellow { background-color: rgba(251, 192, 45, 0.25); color: #fff176; border: 1px solid #fbc02d; }
     .status-brown { background-color: rgba(211, 47, 47, 0.25); color: #e57373; border: 1px solid #d32f2f; }
     .status-error { background-color: rgba(211, 47, 47, 0.3); color: #ff8a80; border: 1px solid #d32f2f; font-size: 0.85rem; }
-
     .label-container { margin-bottom: 20px; }
     .bar-wrapper { margin-bottom: 12px; }
     .bar-info { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; }
     .progress-bg { background-color: #2c2c2c; border-radius: 6px; height: 10px; overflow: hidden; }
     .progress-fill { height: 100%; width: 0%; background-color: #4caf50; border-radius: 6px; transition: width 0.4s ease; }
-
     .recommendation-box { background-color: #282828; border-left: 4px solid #2196f3; border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.45; margin-bottom: 20px; }
     .recommendation-box h3 { font-size: 0.95rem; color: #ffffff; margin-bottom: 6px; }
-
     .history-section { background-color: #252525; border-radius: 10px; padding: 16px; border: 1px solid #333; }
     .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .history-header h3 { font-size: 0.95rem; color: #ffffff; }
     .clear-btn { background: none; border: 1px solid #555; color: #aaa; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
     .clear-btn:hover { background-color: #333; color: #fff; }
-
     .history-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .history-item { display: flex; align-items: center; gap: 12px; background-color: #1a1a1a; padding: 8px 12px; border-radius: 8px; border-left: 4px solid #555; cursor: pointer; transition: background 0.2s, transform 0.2s; }
     .history-item:hover { background-color: #2a2a2a; transform: translateX(4px); }
@@ -79,81 +65,52 @@
     .history-title { font-weight: bold; color: #eee; }
     .history-time { font-size: 0.7rem; color: #888; }
     .history-hint { font-size: 0.68rem; color: #4fc3f7; margin-top: 2px; }
-
     .meta-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: #777; margin-top: 18px; padding-top: 10px; border-top: 1px solid #2c2c2c; }
-
     #swipe-transition-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      pointer-events: none;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none; z-index: 9999; display: flex; flex-direction: column;
     }
-    .swipe-stripe {
-      width: 100%;
-      height: 100%;
-      transform: translateX(-100%);
-      position: absolute;
-      top: 0; left: 0;
-    }
-    @keyframes swipeCurtain {
-      0% { transform: translateX(-100%); }
-      50% { transform: translateX(0%); }
-      100% { transform: translateX(100%); }
-    }
-    .swipe-stripe.animate {
-      animation: swipeCurtain 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards;
-    }
+    .swipe-stripe { width: 100%; height: 100%; transform: translateX(-100%); position: absolute; top: 0; left: 0; }
+    @keyframes swipeCurtain { 0% { transform: translateX(-100%); } 50% { transform: translateX(0%); } 100% { transform: translateX(100%); } }
+    .swipe-stripe.animate { animation: swipeCurtain 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
   </style>
 </head>
 <body>
-
   <div id="swipe-transition-overlay">
-    <div class="swipe-stripe" id="stripe-1" style="background-color: #2196f3; animation-delay: 0s;"></div>
+    <div class="swipe-stripe" id="stripe-1" style="background-color: #2196f3;"></div>
     <div class="swipe-stripe" id="stripe-2" style="background-color: #2e7d32; animation-delay: 0.1s;"></div>
     <div class="swipe-stripe" id="stripe-3" style="background-color: #fbc02d; animation-delay: 0.2s;"></div>
   </div>
-
   <div class="container" id="main-container">
     <h1>🌿 Leaf Color & Health Detector</h1>
     <p class="subtitle">AI-Powered Precision Crop Scouting System</p>
-
     <div id="back-btn-container">
       <button class="back-btn" onclick="exitInspectMode()">← Back to Main</button>
     </div>
-
     <div class="tabs">
-      <button class="tab-btn active" id="btn-upload" onclick="switchTab('upload')">📁 Upload Photos</button>
-      <button class="tab-btn" id="btn-webcam" onclick="switchTab('webcam')">📷 Live Camera</button>
+      <button class="tab-btn active" id="btn-upload" onclick="unlockAudio();switchTab('upload')">📁 Upload Photos</button>
+      <button class="tab-btn" id="btn-webcam" onclick="unlockAudio();switchTab('webcam')">📷 Live Camera</button>
     </div>
-
     <div class="workspace" id="workspace-layout">
       <div class="inspect-left">
         <div id="upload-mode" class="input-section">
-          <label for="image-input" class="custom-file-upload">Choose Photos (Multiple Allowed)</label>
+          <label for="image-input" class="custom-file-upload" onclick="unlockAudio()">Choose Photos (Multiple Allowed)</label>
           <input type="file" id="image-input" accept="image/*" multiple onchange="handleMultipleImages(event)">
           <div id="preview-container">
             <span id="placeholder-text" style="color: #666; font-size: 0.9rem;">No image selected</span>
             <img id="preview-img" style="display: none;" alt="Leaf preview">
           </div>
         </div>
-
         <div id="webcam-mode" class="input-section" style="display: none;">
           <div id="webcam-container"></div>
           <button class="back-btn" id="flip-cam-btn" onclick="switchCamera()" style="margin-top: 10px; display: none;">🔄 Switch to Front Camera</button>
         </div>
-
         <div id="inspect-preview-container">
           <img id="inspect-preview-img" alt="Inspected leaf">
         </div>
       </div>
-
       <div class="inspect-right">
-        <div id="status-banner" class="status-banner">
-          Status: Ready for Inspection
-        </div>
-
+        <div id="status-banner" class="status-banner">Status: Ready for Inspection</div>
         <div class="label-container" id="label-container">
           <div class="bar-wrapper">
             <div class="bar-info"><span id="class-0">Green</span><span id="percent-0">0%</span></div>
@@ -168,14 +125,12 @@
             <div class="progress-bg"><div id="fill-2" class="progress-fill" style="width: 0%; background-color: #ef5350;"></div></div>
           </div>
         </div>
-
         <div class="recommendation-box" id="recommendation-box">
           <h3>📋 Field Action Plan</h3>
           <p id="recommendation-text">Upload or scan a leaf image to generate localized crop diagnostic recommendations.</p>
         </div>
       </div>
     </div>
-
     <div class="history-section">
       <div class="history-header">
         <h3>📜 Scouting History Log</h3>
@@ -185,22 +140,22 @@
         <div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>
       </div>
     </div>
-
     <div class="meta-info">
       <span>Field Sector: A-1</span>
       <span id="timestamp-stamp">Timestamp: --</span>
     </div>
   </div>
-
   <script>
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/v_CX5dkmk/";
-
     let model = null;
     let isWebcamActive = false;
     let isSwitchingCamera = false;
-    let currentFacingMode = "environment"; // Start with rear camera
+    let currentFacingMode = "environment";
     let videoElement = null;
     let mediaStream = null;
+    let audioCtx = null;
+    let audioReady = false;
+    let bgNodes = [];
 
     const recommendations = {
       "Green": "🟢 <strong>Optimal Health:</strong> Crop exhibits healthy chlorophyll levels. Maintain standard irrigation and fertilization schedules.",
@@ -211,15 +166,107 @@
       "Not_A_Leaf": "⚠️ <strong>Invalid Input:</strong> No plant leaf detected in this image. Please upload a clear photo or scan of an agricultural leaf for analysis."
     };
 
+    function unlockAudio() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const start = () => {
+          audioReady = true;
+          startSoftBackground();
+        };
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume().then(start).catch(start);
+        } else {
+          start();
+        }
+      } catch (e) {}
+    }
+
+    function startSoftBackground() {
+      if (!audioCtx || bgNodes.length) return;
+      try {
+        const master = audioCtx.createGain();
+        master.gain.value = 0.018;
+        master.connect(audioCtx.destination);
+
+        const freqs = [130.8, 164.8, 196, 246.9];
+        freqs.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          g.gain.value = 0.25 + i * 0.05;
+          osc.connect(g);
+          g.connect(master);
+          osc.start();
+          bgNodes.push(osc);
+        });
+      } catch (e) {}
+    }
+
+    function playWhoosh() {
+      if (!audioCtx || audioCtx.state !== "running") return;
+      try {
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(180, t);
+        osc.frequency.exponentialRampToValueAtTime(2200, t + 0.06);
+        osc.frequency.exponentialRampToValueAtTime(120, t + 0.22);
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.7, t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + 0.28);
+      } catch (e) {}
+    }
+
+    function playSwipeWhoosh() {
+      if (!audioCtx || audioCtx.state !== "running") return;
+      try {
+        const t = audioCtx.currentTime;
+        // Main whoosh
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(350, t);
+        osc.frequency.exponentialRampToValueAtTime(90, t + 0.35);
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + 0.42);
+
+        // Soft trailing tone ("bue" style)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(220, t + 0.08);
+        gain2.gain.setValueAtTime(0, t);
+        gain2.gain.linearRampToValueAtTime(0.15, t + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(t);
+        osc2.stop(t + 0.55);
+      } catch (e) {}
+    }
+
+    document.addEventListener("click", unlockAudio);
+    document.addEventListener("DOMContentLoaded", function() {
+      setTimeout(unlockAudio, 300);
+    });
+
     async function ensureModelLoaded() {
       if (!model) {
         try {
           const banner = document.getElementById('status-banner');
           banner.className = 'status-banner';
           banner.textContent = '⌛ Loading AI Model from Cloud...';
-
           model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-
           banner.className = 'status-banner status-green';
           banner.textContent = '🟢 Model Loaded - Ready for Scan';
         } catch (err) {
@@ -250,10 +297,8 @@
     async function handleMultipleImages(event) {
       const files = event.target.files;
       if (!files || files.length === 0) return;
-
       await ensureModelLoaded();
       if (!model) return;
-
       for (let i = 0; i < files.length; i++) {
         await processAndLogFile(files[i]);
       }
@@ -267,18 +312,18 @@
           const imgSrc = e.target.result;
           const tempImg = new Image();
           tempImg.src = imgSrc;
-
           tempImg.onload = async function() {
             const imgElement = document.getElementById("preview-img");
             const placeholder = document.getElementById("placeholder-text");
             imgElement.src = imgSrc;
             imgElement.style.display = "block";
             placeholder.style.display = "none";
-
             const preds = await model.predict(tempImg);
             const res = parsePredictions(preds);
             updateTimestamp();
             addToHistory(imgSrc, res.topClass, res.probabilities);
+            if (res.topClass !== "Not_A_Leaf") playWhoosh();
+            else playSwipeWhoosh();
             resolve();
           };
         };
@@ -286,24 +331,18 @@
       });
     }
 
-    // ---- Camera handling (native getUserMedia so front/back switching works on phones) ----
-
     function stopCameraStream() {
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
         mediaStream = null;
       }
-      if (videoElement) {
-        videoElement.srcObject = null;
-      }
+      if (videoElement) videoElement.srcObject = null;
     }
 
     function updateFlipButton() {
       const flipBtn = document.getElementById("flip-cam-btn");
       if (!flipBtn) return;
-      flipBtn.textContent = (currentFacingMode === "environment")
-        ? "🔄 Switch to Front Camera"
-        : "🔄 Switch to Rear Camera";
+      flipBtn.textContent = (currentFacingMode === "environment") ? "🔄 Switch to Front Camera" : "🔄 Switch to Rear Camera";
     }
 
     function updateCameraBadge() {
@@ -320,57 +359,42 @@
     async function startWebcam() {
       await ensureModelLoaded();
       if (!model) return;
-
       isWebcamActive = false;
       stopCameraStream();
-
       const container = document.getElementById("webcam-container");
       container.innerHTML = "";
-
-      // Build the video element fresh each time (reliable on iOS Safari & Android Chrome)
       videoElement = document.createElement("video");
-      videoElement.setAttribute("playsinline", ""); // required for iOS
+      videoElement.setAttribute("playsinline", "");
       videoElement.setAttribute("webkit-playsinline", "");
       videoElement.autoplay = true;
       videoElement.muted = true;
       videoElement.style.transform = (currentFacingMode === "user") ? "scaleX(-1)" : "none";
       container.appendChild(videoElement);
-
       let stream = null;
       try {
-        // Preferred: ask for the selected front/rear camera
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: currentFacingMode } },
-          audio: false
-        });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: currentFacingMode } }, audio: false });
       } catch (err) {
-        console.warn("Facing-mode request failed, trying any camera:", err);
         try {
-          // Fallback: any available camera
           stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         } catch (fallbackErr) {
           alert("Could not access camera. Please check your browser permissions.");
           return;
         }
       }
-
       mediaStream = stream;
       videoElement.srcObject = stream;
-      try { await videoElement.play(); } catch (e) { console.warn("Video play() warning:", e); }
-
+      try { await videoElement.play(); } catch (e) {}
       container.style.display = "flex";
       isWebcamActive = true;
       updateCameraBadge();
-
       const flipBtn = document.getElementById("flip-cam-btn");
       if (flipBtn) flipBtn.style.display = "inline-flex";
       updateFlipButton();
-
       window.requestAnimationFrame(webcamLoop);
     }
 
     async function switchCamera() {
-      if (isSwitchingCamera) return; // prevent double-tap race
+      if (isSwitchingCamera) return;
       isSwitchingCamera = true;
       currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
       updateFlipButton();
@@ -390,18 +414,17 @@
       if (!isWebcamActive) return;
       if (videoElement && videoElement.readyState >= 2) {
         const preds = await model.predict(videoElement);
-        parsePredictions(preds);
+        const res = parsePredictions(preds);
+        if (res.topClass !== "Not_A_Leaf") playWhoosh();
+        else playSwipeWhoosh();
       }
-      if (isWebcamActive) {
-        window.requestAnimationFrame(webcamLoop);
-      }
+      if (isWebcamActive) window.requestAnimationFrame(webcamLoop);
     }
 
     function parsePredictions(predictions) {
       let highestProb = 0;
       let topClass = "";
       const probabilities = {};
-
       predictions.forEach((p) => {
         const percentage = Math.round(p.probability * 100);
         probabilities[p.className] = percentage;
@@ -410,16 +433,13 @@
           topClass = p.className;
         }
       });
-
       if (topClass === "Not_A_Leaf" || (probabilities["Not_A_Leaf"] && probabilities["Not_A_Leaf"] >= 30)) {
         updateInvalidUI();
         return { topClass: "Not_A_Leaf", probabilities };
       }
-
       const plantProbabilities = {};
       let plantHighestProb = 0;
       let plantTopClass = "Green";
-
       for (const [cls, pct] of Object.entries(probabilities)) {
         if (cls !== "Not_A_Leaf") {
           plantProbabilities[cls] = pct;
@@ -429,14 +449,9 @@
           }
         }
       }
-
       let statusClass = plantTopClass;
-      if (plantProbabilities["Brown_Discolored"] && plantProbabilities["Brown_Discolored"] >= 30) {
-        statusClass = "Brown_Discolored";
-      } else if (plantProbabilities["Brown"] && plantProbabilities["Brown"] >= 30) {
-        statusClass = "Brown";
-      }
-
+      if (plantProbabilities["Brown_Discolored"] && plantProbabilities["Brown_Discolored"] >= 30) statusClass = "Brown_Discolored";
+      else if (plantProbabilities["Brown"] && plantProbabilities["Brown"] >= 30) statusClass = "Brown";
       updateUI(statusClass, plantProbabilities);
       return { topClass: statusClass, probabilities: plantProbabilities };
     }
@@ -444,10 +459,8 @@
     function updateInvalidUI() {
       const banner = document.getElementById('status-banner');
       const recText = document.getElementById('recommendation-text');
-
       banner.className = 'status-banner status-error';
       banner.textContent = '⚠️ STATUS: INVALID INPUT (Not a Leaf)';
-
       for (let i = 0; i < 3; i++) {
         const classLabel = document.getElementById(`class-${i}`);
         const percentLabel = document.getElementById(`percent-${i}`);
@@ -458,43 +471,30 @@
           fillBar.style.width = "0%";
         }
       }
-
       recText.innerHTML = recommendations["Not_A_Leaf"];
     }
 
     function updateUI(topClass, probabilities) {
-      const colorMap = {
-        "Green": "#4caf50",
-        "Yellowing": "#fbc02d",
-        "Yellow": "#fbc02d",
-        "Brown_Discolored": "#ef5350",
-        "Brown": "#ef5350"
-      };
-
+      const colorMap = { "Green": "#4caf50", "Yellowing": "#fbc02d", "Yellow": "#fbc02d", "Brown_Discolored": "#ef5350", "Brown": "#ef5350" };
       let index = 0;
       for (const [className, percent] of Object.entries(probabilities)) {
         const classLabel = document.getElementById(`class-${index}`);
         const percentLabel = document.getElementById(`percent-${index}`);
         const fillBar = document.getElementById(`fill-${index}`);
-
         if (classLabel && percentLabel && fillBar) {
           classLabel.textContent = className;
           percentLabel.textContent = percent + "%";
           fillBar.style.width = percent + "%";
-          if (colorMap[className]) {
-            fillBar.style.backgroundColor = colorMap[className];
-          }
+          if (colorMap[className]) fillBar.style.backgroundColor = colorMap[className];
         }
         index++;
       }
-
       updateDiagnosisUI(topClass);
     }
 
     function updateDiagnosisUI(className) {
       const banner = document.getElementById('status-banner');
       const recText = document.getElementById('recommendation-text');
-
       if (className === 'Green') {
         banner.className = 'status-banner status-green';
         banner.textContent = '🟢 STATUS: HEALTHY CROP';
@@ -508,10 +508,7 @@
         banner.className = 'status-banner status-error';
         banner.textContent = '⚠️ STATUS: INVALID INPUT';
       }
-
-      if (recommendations[className]) {
-        recText.innerHTML = recommendations[className];
-      }
+      if (recommendations[className]) recText.innerHTML = recommendations[className];
     }
 
     function updateTimestamp() {
@@ -522,16 +519,13 @@
     function addToHistory(imageSrc, topClass, probabilities) {
       const emptyMsg = document.getElementById("empty-history-msg");
       if (emptyMsg) emptyMsg.style.display = "none";
-
       const historyList = document.getElementById("history-list");
       const percent = probabilities[topClass] || 0;
       const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
       let themeClass = "brown";
       if (topClass === 'Green') themeClass = "green";
       else if (topClass.includes('Yellow')) themeClass = "yellow";
       else if (topClass === 'Not_A_Leaf') themeClass = "error";
-
       const item = document.createElement("div");
       item.className = `history-item ${themeClass}`;
       item.innerHTML = `
@@ -542,55 +536,41 @@
           <span class="history-hint">🔍 Click to inspect side-by-side</span>
         </div>
       `;
-
       item.addEventListener("click", () => {
         stopWebcam();
         const container = document.getElementById("main-container");
         const inspectImg = document.getElementById("inspect-preview-img");
-
         container.classList.add("inspect-mode");
         inspectImg.src = imageSrc;
-
-        if (topClass === 'Not_A_Leaf') {
-          updateInvalidUI();
-        } else {
-          updateUI(topClass, probabilities);
-        }
+        if (topClass === 'Not_A_Leaf') updateInvalidUI();
+        else updateUI(topClass, probabilities);
       });
-
       historyList.prepend(item);
     }
 
     function exitInspectMode() {
-      const container = document.getElementById("main-container");
-      container.classList.remove("inspect-mode");
+      document.getElementById("main-container").classList.remove("inspect-mode");
     }
 
     function clearHistoryWithAnimation() {
-      const stripe1 = document.getElementById('stripe-1');
-      const stripe2 = document.getElementById('stripe-2');
-      const stripe3 = document.getElementById('stripe-3');
-
-      [stripe1, stripe2, stripe3].forEach(stripe => {
+      playWhoosh();
+      setTimeout(playWhoosh, 80);
+      const stripes = [document.getElementById('stripe-1'), document.getElementById('stripe-2'), document.getElementById('stripe-3')];
+      stripes.forEach(stripe => {
         stripe.classList.remove('animate');
         void stripe.offsetWidth;
         stripe.classList.add('animate');
       });
-
       setTimeout(() => {
-        const historyList = document.getElementById("history-list");
-        historyList.innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>`;
-
+        document.getElementById("history-list").innerHTML = `<div id="empty-history-msg" style="color: #666; font-size: 0.8rem; text-align: center; padding: 10px;">No field scans recorded yet. Click any logged scan below to inspect it!</div>`;
         const imgElement = document.getElementById("preview-img");
         const placeholder = document.getElementById("placeholder-text");
         imgElement.style.display = "none";
         imgElement.src = "";
         placeholder.style.display = "block";
-
         const banner = document.getElementById('status-banner');
         banner.className = 'status-banner';
         banner.textContent = 'Status: Ready for Inspection';
-
         for (let i = 0; i < 3; i++) {
           const classLabel = document.getElementById(`class-${i}`);
           const percentLabel = document.getElementById(`percent-${i}`);
@@ -602,10 +582,7 @@
             fillBar.style.backgroundColor = "#4caf50";
           }
         }
-
-        const recText = document.getElementById('recommendation-text');
-        recText.innerHTML = "Upload or scan a leaf image to generate localized crop diagnostic recommendations.";
-
+        document.getElementById('recommendation-text').innerHTML = "Upload or scan a leaf image to generate localized crop diagnostic recommendations.";
         document.getElementById('timestamp-stamp').textContent = 'Timestamp: --';
         exitInspectMode();
       }, 400);
